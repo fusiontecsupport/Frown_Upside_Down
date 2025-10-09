@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'pages/splash_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,10 +12,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Frown Upside Down',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(),
+      home: const SplashPage(palette: SplashPalette.colorhunt),
     );
   }
 }
@@ -26,7 +28,17 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Frown Upside Down'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/splash/logo.png',
+              width: 30,
+              height: 30,
+            ),
+            const SizedBox(width: 10),
+            const Text('Frown Upside Down'),
+          ],
+        ),
       ),
       body: const Center(
         child: Text(
