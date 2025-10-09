@@ -1,0 +1,25 @@
+# Dart/Pub/Pubspec dependencies
+.dart_tool/
+.packages
+.pub/
+build/
+
+# Flutter/Dart specific
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-versions
+.idea/
+android/
+ios/
+
+# IDEs
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# macOS
+.DS_Store
+
+# Others
+*.log
