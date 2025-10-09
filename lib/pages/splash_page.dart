@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import '../main.dart';
+import 'login_page.dart';
 
 enum SplashStyle { aurora, liquid, orbs }
 
@@ -144,7 +144,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const MyHomePage(),
+            pageBuilder: (context, animation, secondaryAnimation) => const LoginPage(),
             transitionDuration: const Duration(milliseconds: 700),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
