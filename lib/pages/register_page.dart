@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'plan_selection_page.dart';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -140,46 +141,80 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     _slideController.dispose();
     _backgroundController.dispose();
     _breathingController.dispose();
-    _cardController.dispose();
     _socialController.dispose();
     super.dispose();
   }
 
   // Authentication handlers
   Future<void> _handleRegister() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() => _isLoading = true);
-      HapticFeedback.lightImpact();
-      
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Simulate registration API call
       await Future.delayed(const Duration(seconds: 2));
       
-      setState(() => _isLoading = false);
-      _showMessage('Account created successfully! Welcome to Frown Upside Down!');
+      if (mounted) {
+        setState(() => _isLoading = false);
+        
+        // Navigate to plan selection page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const PlanSelectionPage(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Registration failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
     }
   }
 
-  void _handleSocialRegister(String provider) {
-    HapticFeedback.mediumImpact();
-    _showMessage('Sign up with $provider');
-  }
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
+  void _handleSocialRegister(String provider) async {
+    setState(() => _isLoading = true);
+    HapticFeedback.lightImpact();
+    
+    try {
+      // Simulate social registration API call
+      await Future.delayed(const Duration(seconds: 2));
+      
+      if (mounted) {
+        setState(() => _isLoading = false);
+        
+        // Navigate to plan selection page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const PlanSelectionPage(),
           ),
-        ),
-        backgroundColor: const Color(0xFF4A6FA5),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        margin: const EdgeInsets.all(20),
-        elevation: 8,
-      ),
-    );
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$provider registration failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _selectDate() async {
@@ -544,7 +579,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
       animation: _breathingAnimation,
       builder: (context, child) {
         return Opacity(
-          opacity: 0.6 + (_breathingAnimation.value - 1.0) * 5,
+          opacity: (0.6 + (_breathingAnimation.value - 1.0) * 0.4).clamp(0.0, 1.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
