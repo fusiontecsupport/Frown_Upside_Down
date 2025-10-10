@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
+import 'dart:ui';
 
 /// Clean, basic login page with iOS-style social buttons
 class LoginPage extends StatefulWidget {
@@ -22,8 +23,16 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   // Animation controllers
   late AnimationController _fadeController;
   late AnimationController _slideController;
+  late AnimationController _backgroundController;
+  late AnimationController _breathingController;
+  late AnimationController _cardController;
+  late AnimationController _socialController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late Animation<double> _backgroundAnimation;
+  late Animation<double> _breathingAnimation;
+  late Animation<double> _cardAnimation;
+  late Animation<double> _socialAnimation;
 
   @override
   void initState() {
@@ -36,6 +45,26 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     );
     
     _slideController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    
+    _backgroundController = AnimationController(
+      duration: const Duration(seconds: 10),
+      vsync: this,
+    )..repeat(reverse: true);
+    
+    _breathingController = AnimationController(
+      duration: const Duration(seconds: 4),
+      vsync: this,
+    )..repeat(reverse: true);
+    
+    _cardController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _socialController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
@@ -53,9 +82,47 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       curve: Curves.easeOutCubic,
     ));
     
-    // Start animations
+    _backgroundAnimation = CurvedAnimation(
+      parent: _backgroundController,
+      curve: Curves.easeInOut,
+    );
+    
+    _breathingAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.08,
+    ).animate(CurvedAnimation(
+      parent: _breathingController,
+      curve: Curves.easeInOut,
+    ));
+    
+    _cardAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _cardController,
+      curve: Curves.elasticOut,
+    ));
+    
+    _socialAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _socialController,
+      curve: Curves.easeOutBack,
+    ));
+    
+    // Start animations with staggered timing
     _fadeController.forward();
     _slideController.forward();
+    
+    // Delayed card and social animations
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (mounted) _cardController.forward();
+    });
+    
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) _socialController.forward();
+    });
   }
 
   @override
@@ -64,6 +131,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     _passwordController.dispose();
     _fadeController.dispose();
     _slideController.dispose();
+    _backgroundController.dispose();
+    _breathingController.dispose();
+    _cardController.dispose();
+    _socialController.dispose();
     super.dispose();
   }
 
@@ -102,7 +173,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             fontWeight: FontWeight.w500,
           ),
         ),
-        backgroundColor: const Color(0xFF6B73FF),
+        backgroundColor: const Color(0xFF4A6FA5),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.all(20),
@@ -114,92 +185,251 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FF),
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 40),
+      body: Stack(
+        children: [
+          // Animated background
+          _buildAnimatedBackground(),
+          
+          // Floating shapes
+          _buildFloatingShapes(),
+          
+          // Main content
+          SafeArea(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 80),
                   
-                  // Animated logo
-                  _buildAnimatedLogo(),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Welcome text
-                  _buildWelcomeText(),
-                  
-                  const SizedBox(height: 40),
-                  
-                  // Login/Sign up form
-                  _buildLoginForm(),
-                  
-                  const SizedBox(height: 32),
-                  
-                  // Social buttons after sign in
-                  _buildSocialSection(),
-                  
-                  const SizedBox(height: 32),
-                  
-                  // Toggle sign up/login
-                  _buildTogglePrompt(),
-                  
-                  const SizedBox(height: 20),
-                ],
+                      // Animated logo with app name (horizontal)
+                      _buildAnimatedLogo(),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Breathing reminder
+                      _buildBreathingReminder(),
+                      
+                      const SizedBox(height: 32),
+                      
+                      // Login/Sign up form with glassmorphism
+                      ScaleTransition(
+                        scale: _cardAnimation,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 400),
+                          child: _buildGlassCard(),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 32),
+                      
+                      // Social buttons after sign in
+                      FadeTransition(
+                        opacity: _socialAnimation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.3),
+                            end: Offset.zero,
+                          ).animate(_socialAnimation),
+                          child: _buildSocialSection(),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Toggle sign up/login
+                      _buildTogglePrompt(),
+                      
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildAnimatedLogo() {
-    return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 1200),
-      tween: Tween(begin: 0.0, end: 1.0),
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: 0.8 + (0.2 * value),
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF6B73FF).withOpacity(0.1 * value),
-                  blurRadius: 20 * value,
-                  offset: Offset(0, 8 * value),
-                ),
+  Widget _buildAnimatedBackground() {
+    return AnimatedBuilder(
+      animation: _backgroundAnimation,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color.lerp(
+                  const Color(0xFFE8F1FF), // Soft sky blue
+                  const Color(0xFFF0F6FF),
+                  _backgroundAnimation.value,
+                )!,
+                Color.lerp(
+                  const Color(0xFFE0EBFF), // Light periwinkle
+                  const Color(0xFFEDF4FF),
+                  _backgroundAnimation.value,
+                )!,
+                Color.lerp(
+                  const Color(0xFFD6E4FF), // Pale blue
+                  const Color(0xFFE8F0FF),
+                  _backgroundAnimation.value,
+                )!,
               ],
             ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/splash/logo.png',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF6B73FF), Color(0xFF9C88FF)],
-                      ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFloatingShapes() {
+    return AnimatedBuilder(
+      animation: _backgroundAnimation,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            // Decorative squares only - removed circles
+            // Floating peaceful circles
+            Positioned(
+              top: 100 - (20 * _backgroundAnimation.value),
+              left: 30,
+              child: Transform.rotate(
+                angle: _backgroundAnimation.value * math.pi / 6,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF4A6FA5).withOpacity(0.12),
+                        const Color(0xFF4A6FA5).withOpacity(0.04),
+                      ],
                     ),
-                    child: const Icon(
-                      Icons.person,
-                      size: 40,
-                      color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            
+            Positioned(
+              top: 250 + (30 * _backgroundAnimation.value),
+              right: 20,
+              child: Transform.rotate(
+                angle: -_backgroundAnimation.value * math.pi / 4,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF5B7DB1).withOpacity(0.12),
+                        const Color(0xFF5B7DB1).withOpacity(0.04),
+                      ],
                     ),
-                  );
-                },
+                  ),
+                ),
+              ),
+            ),
+            
+            Positioned(
+              bottom: 150 + (25 * _backgroundAnimation.value),
+              left: 50,
+              child: Transform.rotate(
+                angle: _backgroundAnimation.value * math.pi / 3,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF6B8FC3).withOpacity(0.1),
+                        const Color(0xFF6B8FC3).withOpacity(0.03),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            
+            Positioned(
+              bottom: 300 - (15 * _backgroundAnimation.value),
+              right: 60,
+              child: Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFF4A6FA5).withOpacity(0.08),
+                      const Color(0xFF4A6FA5).withOpacity(0.02),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildGlassCard() {
+    return AnimatedBuilder(
+      animation: _breathingAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 1.0 + (_breathingAnimation.value - 1.0) * 0.015,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.98),
+                      Colors.white.withOpacity(0.92),
+                      Colors.white.withOpacity(0.95),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.8),
+                    width: 2.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF4A6FA5).withOpacity(0.3),
+                      blurRadius: 60,
+                      offset: const Offset(0, 25),
+                      spreadRadius: -5,
+                    ),
+                    BoxShadow(
+                      color: const Color(0xFF5B7DB1).withOpacity(0.25),
+                      blurRadius: 40,
+                      offset: const Offset(0, 15),
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 50,
+                      offset: const Offset(0, 20),
+                    ),
+                  ],
+                ),
+                child: _buildLoginForm(),
               ),
             ),
           ),
@@ -208,29 +438,123 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildWelcomeText() {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      child: Column(
-        key: ValueKey(_isSignUp),
-        children: [
-          Text(
-            _isSignUp ? 'Create Account' : 'Welcome Back',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF1F2937),
+  Widget _buildAnimatedLogo() {
+    return AnimatedBuilder(
+      animation: _breathingAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 0.95 + (_breathingAnimation.value - 1.0) * 0.5,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Logo with enhanced breathing
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF4A6FA5).withOpacity(0.4 * _breathingAnimation.value),
+                        blurRadius: 25,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Image.asset(
+                    'assets/splash/logo.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Color(0xFF4A6FA5),
+                              Color(0xFF5B7DB1),
+                            ],
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.self_improvement,
+                          size: 36,
+                          color: Colors.white,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // App name with better styling
+                const Flexible(
+                  child: Text(
+                    'Frown Upside Down',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w300,
+                      color: Color(0xFF2C4A7C),
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            _isSignUp ? 'Join us today' : 'Sign in to your account',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF6B7280),
-              fontWeight: FontWeight.w400,
-            ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBreathingReminder() {
+    return AnimatedBuilder(
+      animation: _breathingAnimation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: 0.6 + (_breathingAnimation.value - 1.0) * 5,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Transform.scale(
+                scale: _breathingAnimation.value,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    gradient: const RadialGradient(
+                      colors: [
+                        Color(0xFF4A6FA5),
+                        Color(0xFF5B7DB1),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF4A6FA5).withOpacity(0.6),
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                'Take a moment to breathe',
+                style: TextStyle(
+                  color: const Color(0xFF2C4A7C).withOpacity(0.75),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -249,7 +573,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         // Divider
         _buildDivider(),
         
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         
         // Social buttons
         _buildSocialButtons(),
@@ -262,53 +586,81 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         // Apple icon
-        _buildRoundedSocialIcon(
+        _buildAnimatedSocialIcon(
           type: SocialButtonType.apple,
           onPressed: () => _handleSocialLogin('Apple'),
+          delay: 0,
         ),
         
         // Google icon
-        _buildRoundedSocialIcon(
+        _buildAnimatedSocialIcon(
           type: SocialButtonType.google,
           onPressed: () => _handleSocialLogin('Google'),
+          delay: 100,
         ),
         
         // Facebook icon
-        _buildRoundedSocialIcon(
+        _buildAnimatedSocialIcon(
           type: SocialButtonType.facebook,
           onPressed: () => _handleSocialLogin('Facebook'),
+          delay: 200,
         ),
       ],
     );
   }
 
-  Widget _buildRoundedSocialIcon({
+  Widget _buildAnimatedSocialIcon({
     required SocialButtonType type,
     required VoidCallback onPressed,
+    required int delay,
   }) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          color: _getSocialBackgroundColor(type),
-          shape: BoxShape.circle,
-          border: type == SocialButtonType.google 
-              ? Border.all(color: Colors.grey[300]!, width: 1.5)
-              : null,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+    return TweenAnimationBuilder<double>(
+      duration: Duration(milliseconds: 600 + delay),
+      tween: Tween(begin: 0.0, end: 1.0),
+      curve: Curves.elasticOut,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            child: GestureDetector(
+              onTapDown: (_) => setState(() {}),
+              onTapUp: (_) => setState(() {}),
+              onTapCancel: () => setState(() {}),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onPressed();
+              },
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: _getSocialBackgroundColor(type),
+                  shape: BoxShape.circle,
+                  border: type == SocialButtonType.google 
+                      ? Border.all(color: Colors.grey[300]!, width: 1.5)
+                      : null,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _getSocialBackgroundColor(type).withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: _buildBrandIcon(type),
+                ),
+              ),
             ),
-          ],
-        ),
-        child: Center(
-          child: _buildBrandIcon(type),
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -452,7 +804,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             },
           ),
           
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           
           // Login button
           _buildLoginButton(),
@@ -481,19 +833,21 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         hintText: hint,
         prefixIcon: Icon(icon, color: Colors.grey[600]),
         suffixIcon: suffixIcon,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         filled: true,
-        fillColor: Colors.grey[50],
+        fillColor: const Color(0xFFF5F8FF),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(25),
+          borderSide: BorderSide(color: const Color(0xFF4A6FA5).withOpacity(0.3)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(25),
+          borderSide: BorderSide(color: const Color(0xFF4A6FA5).withOpacity(0.3)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF6B73FF), width: 2),
+          borderRadius: BorderRadius.circular(25),
+          borderSide: const BorderSide(color: Color(0xFF4A6FA5), width: 2.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -508,61 +862,113 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   Widget _buildLoginButton() {
-    return SizedBox(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
       width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleEmailLogin,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF6B73FF),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 2,
+      height: 58,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF4A6FA5),
+            Color(0xFF5B7DB1),
+            Color(0xFF4A6FA5),
+          ],
         ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Text(
-                _isSignUp ? 'Create Account' : 'Sign In',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4A6FA5).withOpacity(0.6),
+            blurRadius: 35,
+            offset: const Offset(0, 18),
+          ),
+          BoxShadow(
+            color: const Color(0xFF5B7DB1).withOpacity(0.4),
+            blurRadius: 25,
+            offset: const Offset(0, 10),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(30),
+          onTap: _isLoading ? null : () {
+            HapticFeedback.mediumImpact();
+            _handleEmailLogin();
+          },
+          child: Container(
+            alignment: Alignment.center,
+            child: _isLoading
+                ? const SizedBox(
+                    width: 26,
+                    height: 26,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(
+                    _isSignUp ? 'Create Account' : 'Sign In',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildTogglePrompt() {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      child: Row(
-        key: ValueKey(_isSignUp),
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            _isSignUp ? "Already have an account? " : "Don't have an account? ",
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-          TextButton(
-            onPressed: _toggleSignUpMode,
-            child: Text(
-              _isSignUp ? 'Sign In' : 'Sign Up',
-              style: const TextStyle(
-                color: Color(0xFF6B73FF),
-                fontWeight: FontWeight.w600,
+    return Center(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.1),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          );
+        },
+        child: Material(
+          key: ValueKey(_isSignUp),
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              _toggleSignUpMode();
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                _isSignUp ? 'Already have an account? Sign In' : 'New to Frown? Create Account',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFF4A6FA5),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  letterSpacing: 0.8,
+                ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
