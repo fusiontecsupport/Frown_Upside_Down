@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import 'dart:ui';
+import 'register_page.dart';
 
 /// Clean, basic login page with iOS-style social buttons
 class LoginPage extends StatefulWidget {
@@ -18,7 +19,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
-  bool _isSignUp = false;
 
   // Animation controllers
   late AnimationController _fadeController;
@@ -147,7 +147,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       await Future.delayed(const Duration(seconds: 2));
       
       setState(() => _isLoading = false);
-      _showMessage(_isSignUp ? 'Account created successfully!' : 'Login successful!');
+      _showMessage('Login successful!');
     }
   }
 
@@ -156,11 +156,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     _showMessage('Continue with $provider');
   }
 
-  void _toggleSignUpMode() {
-    setState(() {
-      _isSignUp = !_isSignUp;
-    });
+  void _navigateToRegister() {
     HapticFeedback.selectionClick();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const RegisterPage()),
+    );
   }
 
   void _showMessage(String message) {
@@ -392,7 +393,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(32),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
               child: Container(
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
@@ -400,31 +401,31 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Colors.white.withOpacity(0.98),
-                      Colors.white.withOpacity(0.92),
-                      Colors.white.withOpacity(0.95),
+                      Colors.white.withOpacity(0.75),
+                      Colors.white.withOpacity(0.65),
+                      Colors.white.withOpacity(0.70),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(32),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.8),
-                    width: 2.5,
+                    color: Colors.white.withOpacity(0.5),
+                    width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF4A6FA5).withOpacity(0.3),
-                      blurRadius: 60,
+                      color: const Color(0xFF4A6FA5).withOpacity(0.25),
+                      blurRadius: 50,
                       offset: const Offset(0, 25),
                       spreadRadius: -5,
                     ),
                     BoxShadow(
-                      color: const Color(0xFF5B7DB1).withOpacity(0.25),
-                      blurRadius: 40,
+                      color: const Color(0xFF5B7DB1).withOpacity(0.2),
+                      blurRadius: 35,
                       offset: const Offset(0, 15),
                     ),
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
-                      blurRadius: 50,
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 40,
                       offset: const Offset(0, 20),
                     ),
                   ],
@@ -632,8 +633,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 onPressed();
               },
               child: Container(
-                width: 64,
-                height: 64,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: _getSocialBackgroundColor(type),
                   shape: BoxShape.circle,
@@ -673,25 +674,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           size: 28,
         );
       case SocialButtonType.google:
-        return Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: Colors.grey[300]!, width: 1),
-          ),
-          child: const Center(
-            child: Text(
-              'G',
-              style: TextStyle(
-                color: Color(0xFF4285F4),
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                fontFamily: 'Arial',
-              ),
-            ),
-          ),
+        return CustomPaint(
+          size: const Size(26, 26),
+          painter: GoogleGPainter(),
         );
       case SocialButtonType.facebook:
         return const Icon(
@@ -914,9 +899,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : Text(
-                    _isSignUp ? 'Create Account' : 'Sign In',
-                    style: const TextStyle(
+                : const Text(
+                    'Sign In',
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -946,20 +931,16 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           );
         },
         child: Material(
-          key: ValueKey(_isSignUp),
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
-            onTap: () {
-              HapticFeedback.selectionClick();
-              _toggleSignUpMode();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            onTap: _navigateToRegister,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
-                _isSignUp ? 'Already have an account? Sign In' : 'New to Frown? Create Account',
+                'New to Frown? Create Account',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Color(0xFF4A6FA5),
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -977,4 +958,60 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 // Social button types
 enum SocialButtonType { apple, google, facebook }
 
-// Removed custom painter - using simple icons instead
+// Precise Google "G" painter using stroke-based segmented arcs
+class GoogleGPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Thinner stroke and inset rect to avoid clipping with round caps
+    final stroke = size.width * 0.16;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - stroke) / 2 - 0.5; // small inset for safety
+    final rect = Rect.fromCircle(center: center, radius: radius).deflate(0.5);
+
+    void seg(Color color, double start, double sweep) {
+      final p = Paint()
+        ..isAntiAlias = true
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeCap = StrokeCap.round
+        ..color = color;
+      canvas.drawArc(rect, start, sweep, false, p);
+    }
+
+    // Angles chosen to visually match the Google "G"
+    final startTop = -math.pi / 2; // 12 o'clock
+    // Cover ~2π minus a small gap on right; distribute brand segments
+    const redSweep = 0.9;    // ~52°
+    const yellowSweep = 0.9; // ~52°
+    const greenSweep = 0.9;  // ~52°
+    const blueSweep = 2.98;  // ~171°
+
+    // Red (top-left)
+    seg(const Color(0xFFEA4335), startTop, redSweep);
+    // Yellow (bottom-left)
+    final yellowStart = startTop + redSweep;
+    seg(const Color(0xFFFBBC05), yellowStart, yellowSweep);
+    // Green (bottom-right)
+    final greenStart = yellowStart + yellowSweep;
+    seg(const Color(0xFF34A853), greenStart, greenSweep);
+    // Blue (top-right and around)
+    final blueStart = greenStart + greenSweep;
+    seg(const Color(0xFF4285F4), blueStart, blueSweep);
+
+    // Blue crossbar to complete the G (shorter to stay within bounds)
+    final barPaint = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke * 0.85
+      ..strokeCap = StrokeCap.round
+      ..color = const Color(0xFF4285F4);
+    final y = center.dy;
+    final x1 = center.dx + radius * 0.25;
+    final x2 = center.dx + radius * 0.9;
+    canvas.drawLine(Offset(x1, y), Offset(x2, y), barPaint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
