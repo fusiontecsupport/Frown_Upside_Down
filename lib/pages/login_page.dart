@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'register_page.dart';
+import 'home_page.dart';
 
 /// Clean, basic login page with iOS-style social buttons
 class LoginPage extends StatefulWidget {
@@ -146,8 +147,23 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       
       await Future.delayed(const Duration(seconds: 2));
       
-      setState(() => _isLoading = false);
-      _showMessage('Login successful!');
+      final usernameOrEmail = _emailController.text.trim();
+      final password = _passwordController.text;
+
+      if (usernameOrEmail == 'admin' && password == '123456') {
+        setState(() => _isLoading = false);
+        // Navigate to HomePage with a default plan type
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomePage(planType: 'lifetime'),
+          ),
+        );
+      } else {
+        setState(() => _isLoading = false);
+        _showMessage('Invalid credentials');
+      }
     }
   }
 
@@ -747,16 +763,18 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           // Email field
           _buildTextField(
             controller: _emailController,
-            label: 'Email',
-            hint: 'Enter your email',
+            label: 'Email or Username',
+            hint: 'Enter email or "admin"',
             icon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your email';
               }
-              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                return 'Please enter a valid email';
+              // Allow special username 'admin' or enforce valid email
+              if (value.trim() != 'admin' &&
+                  !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                return 'Enter a valid email or "admin"';
               }
               return null;
             },
