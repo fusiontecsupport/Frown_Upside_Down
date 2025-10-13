@@ -130,6 +130,23 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     });
   }
 
+  Widget _buildFooterCopyright() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Center(
+        child: Text(
+          '© 2025 Frown Upside Down',
+          style: TextStyle(
+            color: Colors.black.withOpacity(0.45),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            letterSpacing: -0.1,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -293,6 +310,8 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
                           
                           // Login prompt
                           _buildLoginPrompt(),
+                          const SizedBox(height: 12),
+                          _buildFooterCopyright(),
                           
                           const SizedBox(height: 20),
                         ],
@@ -462,13 +481,13 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
                   child: Center(
                     child: Image.asset(
                       'assets/splash/logo.png',
-                      width: 30,
-                      height: 30,
+                      width: 34,
+                      height: 34,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(
                           Icons.self_improvement,
-                          size: 30,
+                          size: 32,
                           color: Color(0xFF4A6FA5),
                         );
                       },
@@ -752,7 +771,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: Icon(icon, color: Colors.grey[600]),
+        prefixIcon: Icon(icon, color: Colors.grey[600], size: 26),
         suffixIcon: suffixIcon,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -859,8 +878,8 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
           decoration: InputDecoration(
             labelText: 'Date of Birth',
             hintText: 'Select your date of birth',
-            prefixIcon: Icon(Icons.calendar_today_outlined, color: Colors.grey[600]),
-            suffixIcon: Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
+            prefixIcon: Icon(Icons.calendar_today_outlined, color: Colors.grey[600], size: 26),
+            suffixIcon: Icon(Icons.arrow_drop_down, color: Colors.grey[600], size: 26),
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             filled: true,
@@ -962,8 +981,8 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: const Color(0xFF8E8E93),
-                      size: 22,
+                      size: 24,
+                      color: Colors.grey[600],
                     ),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
@@ -985,8 +1004,8 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: const Color(0xFF8E8E93),
-                      size: 22,
+                      size: 24,
+                      color: Colors.grey[600],
                     ),
                     onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
                   ),

@@ -282,8 +282,23 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                   const Spacer(flex: 3),
                   // Subtle loading indicator (three bouncing dots)
                   Padding(
-                    padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 24),
-                    child: _AnimatedProgressBar(controller: _bgController, pal: _pal),
+                    padding: EdgeInsets.only(bottom: 8 + MediaQuery.of(context).padding.bottom),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _AnimatedProgressBar(controller: _bgController, pal: _pal),
+                        const SizedBox(height: 10),
+                        Text(
+                          '© 2025 Frown Upside Down',
+                          style: TextStyle(
+                            color: Colors.black.withOpacity(0.45),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

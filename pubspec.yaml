@@ -10,14 +10,24 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  lottie: ^2.7.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
   assets:
     - assets/
     - assets/splash/
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/splash/logo.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/splash/logo.png"
+  remove_alpha_ios: true

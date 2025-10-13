@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter/services.dart';
+import 'support_messages_page.dart';
+import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
   final String planType;
@@ -18,6 +21,8 @@ class _HomePageState extends State<HomePage>
   late Animation<double> _breathingAnimation;
 
   int _selectedIndex = 0;
+  bool _emotionComplete = false;
+  bool _emotionDialogShown = false;
 
   @override
   void initState() {
@@ -51,6 +56,41 @@ class _HomePageState extends State<HomePage>
 
     _fadeController.forward();
     _breathingController.repeat(reverse: true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!_emotionDialogShown) {
+        _emotionDialogShown = true;
+        final mood = await _openEmotionDialog();
+        if (mounted) {
+          setState(() {
+            _emotionComplete = true;
+          });
+        }
+        if (!mounted) return;
+        if (mood == 'Sad') {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const SupportMessagesPage(
+                title: 'Feeling Sad',
+                messages: [
+                  "Why? It's not worth it! Write down your feelings in order to make a solution.",
+                  'Laughter is the best medicines. Watch something funny!',
+                  'Most Importantly, SMILE! Smiling can become contagious. If you feel depressed, smiling can help elevate your mood.',
+                  "If you need to crying definitely helps. Don't hold it back because you will feel a lot better.",
+                  'Never Give Up on yourself!',
+                  'Distract your mind from bad thoughts!',
+                  'Exercise to divert your mind and to feel better. Exercising helps you get better mentally. It helps with frustations and getting things off your mind while building muscle.',
+                  'Do not blame yourself. YOU ARE WORTH IT!',
+                  'Listen to some of you favorite songs and dance it off.',
+                  'If you know a place, you should go jump on a trampoline. It is a lot of fun and also incorporates cardio for exercising.',
+                  'Have A Great Day & Keep Smiling!',
+                ],
+              ),
+            ),
+          );
+        }
+      }
+    });
   }
 
   @override
@@ -80,7 +120,7 @@ class _HomePageState extends State<HomePage>
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
+      bottomNavigationBar: _emotionComplete ? _buildBottomNavBar() : null,
     );
   }
 
@@ -136,6 +176,9 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildContent() {
+    if (!_emotionComplete) {
+      return const SizedBox();
+    }
     switch (_selectedIndex) {
       case 0:
         return _buildHomeContent();
@@ -148,6 +191,304 @@ class _HomePageState extends State<HomePage>
       default:
         return _buildHomeContent();
     }
+  }
+
+  Future<String?> _openEmotionDialog() async {
+    return showGeneralDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: 'Emotion',
+      barrierColor: Colors.black.withOpacity(0.2),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return const SizedBox.shrink();
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        String selected = '';
+        final options = [
+          {'label': 'Happy', 'emoji': '😀'},
+          {'label': 'Sad', 'emoji': '😢'},
+          {'label': 'Disappointed', 'emoji': '😞'},
+          {'label': 'Stressed', 'emoji': '😣'},
+          {'label': 'Nervous', 'emoji': '😬'},
+          {'label': 'Calm', 'emoji': '😌'},
+        ];
+        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+          child: Opacity(
+            opacity: curved.value,
+            child: Transform.scale(
+              scale: 0.96 + 0.04 * curved.value,
+              child: Center(
+                child: StatefulBuilder(
+                  builder: (context, setState) {
+                    final maxH = MediaQuery.of(context).size.height * 0.6;
+                    return Material(
+                      color: Colors.transparent,
+                      child: Dialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxHeight: maxH),
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(20),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.white.withOpacity(0.96),
+                                    Colors.white.withOpacity(0.88),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const SizedBox(height: 10),
+                                    Container(
+                                      width: 36,
+                                      height: 4,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF8E8E93).withOpacity(0.3),
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    // Back button row
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Color(0xFF4A6FA5)),
+                                          onPressed: () {
+                                            Navigator.of(context).pop(null);
+                                          },
+                                        ),
+                                        const Spacer(),
+                                      ],
+                                    ),
+                                    AnimatedBuilder(
+                                      animation: _breathingController,
+                                      builder: (context, _) {
+                                        final v = _breathingController.value; // 0..1
+                                        final scale = 0.98 + (v * 0.04);      // 0.98..1.02
+                                        final dy = (v - 0.5) * 8;              // -4..+4 px
+                                        final glow = 0.15 + (v * 0.25);        // 0.15..0.40
+                                        return Transform.translate(
+                                          offset: Offset(0, dy),
+                                          child: Transform.scale(
+                                            scale: scale,
+                                            child: Container(
+                                              width: 88,
+                                              height: 88,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                gradient: const LinearGradient(
+                                                  colors: [Color(0xFF4A6FA5), Color(0xFF5B7DB1)],
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: const Color(0xFF4A6FA5).withOpacity(glow),
+                                                    blurRadius: 24,
+                                                    spreadRadius: 2,
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Center(
+                                                child: AnimatedSwitcher(
+                                                  duration: const Duration(milliseconds: 200),
+                                                  transitionBuilder: (child, anim) =>
+                                                      ScaleTransition(scale: anim, child: child),
+                                                  child: Text(
+                                                    selected.isEmpty
+                                                        ? '🙂'
+                                                        : options.firstWhere((e) => e['label'] == selected)['emoji'] as String,
+                                                    key: ValueKey<String>(selected.isEmpty ? 'neutral' : selected),
+                                                    style: const TextStyle(fontSize: 40, color: Colors.white),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 14),
+                                    const Text(
+                                      'How are you feeling today?',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF1C1C1E),
+                                        letterSpacing: -0.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      'Select one to continue',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w400,
+                                        color: const Color(0xFF8E8E93),
+                                        letterSpacing: -0.1,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Builder(
+                                      builder: (context) {
+                                        final size = MediaQuery.of(context).size;
+                                        final useAltDesign = size.width < 360; // circular chips on very narrow screens
+                                        return Wrap(
+                                          alignment: WrapAlignment.center,
+                                          spacing: 10,
+                                          runSpacing: 10,
+                                          children: options.asMap().entries.map((entry) {
+                                            final index = entry.key;
+                                            final opt = entry.value;
+                                            final isSelected = selected == opt['label'];
+                                            // Staggered entrance based on dialog animation progress
+                                            final base = (curved.value - index * 0.08).clamp(0.0, 1.0);
+                                            final dy = (1.0 - base) * 12.0;
+                                            return Opacity(
+                                              opacity: base,
+                                              child: Transform.translate(
+                                                offset: Offset(0, dy),
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    setState(() => selected = opt['label'] as String);
+                                                    Future.delayed(const Duration(milliseconds: 150), () {
+                                                      Navigator.of(context).pop(opt['label']);
+                                                    });
+                                                  },
+                                                  child: AnimatedScale(
+                                                    duration: const Duration(milliseconds: 140),
+                                                    scale: isSelected ? 1.06 : 1.0,
+                                                    child: useAltDesign
+                                                        ? Container(
+                                                            width: 92,
+                                                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                                                            decoration: BoxDecoration(
+                                                              color: isSelected
+                                                                  ? const Color(0xFF4A6FA5)
+                                                                  : const Color(0xFF4A6FA5).withOpacity(0.06),
+                                                              borderRadius: BorderRadius.circular(16),
+                                                              border: Border.all(
+                                                                color: const Color(0xFF4A6FA5).withOpacity(isSelected ? 0.0 : 0.15),
+                                                              ),
+                                                              boxShadow: isSelected
+                                                                  ? [
+                                                                      BoxShadow(
+                                                                        color: const Color(0xFF4A6FA5).withOpacity(0.25),
+                                                                        blurRadius: 12,
+                                                                        offset: const Offset(0, 6),
+                                                                      ),
+                                                                    ]
+                                                                  : null,
+                                                            ),
+                                                            child: Column(
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              children: [
+                                                                Container(
+                                                                  width: 44,
+                                                                  height: 44,
+                                                                  decoration: BoxDecoration(
+                                                                    shape: BoxShape.circle,
+                                                                    color: isSelected
+                                                                        ? Colors.white.withOpacity(0.15)
+                                                                        : const Color(0xFF4A6FA5).withOpacity(0.08),
+                                                                  ),
+                                                                  child: Center(
+                                                                    child: Text(
+                                                                      opt['emoji'] as String,
+                                                                      style: TextStyle(fontSize: isSelected ? 22 : 20, color: isSelected ? Colors.white : const Color(0xFF1C1C1E)),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(height: 6),
+                                                                Text(
+                                                                  opt['label'] as String,
+                                                                  textAlign: TextAlign.center,
+                                                                  style: TextStyle(
+                                                                    fontSize: 12,
+                                                                    fontWeight: FontWeight.w600,
+                                                                    color: isSelected ? Colors.white : const Color(0xFF1C1C1E),
+                                                                    letterSpacing: -0.1,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          )
+                                                        : Container(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                                            decoration: BoxDecoration(
+                                                              color: isSelected
+                                                                  ? const Color(0xFF4A6FA5)
+                                                                  : const Color(0xFF4A6FA5).withOpacity(0.06),
+                                                              borderRadius: BorderRadius.circular(22),
+                                                              border: Border.all(
+                                                                color: const Color(0xFF4A6FA5).withOpacity(isSelected ? 0.0 : 0.15),
+                                                                width: 1,
+                                                              ),
+                                                              boxShadow: isSelected
+                                                                  ? [
+                                                                      BoxShadow(
+                                                                        color: const Color(0xFF4A6FA5).withOpacity(0.25),
+                                                                        blurRadius: 12,
+                                                                        offset: const Offset(0, 6),
+                                                                      ),
+                                                                    ]
+                                                                  : null,
+                                                            ),
+                                                            child: Row(
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              children: [
+                                                                Text(
+                                                                  opt['emoji'] as String,
+                                                                  style: const TextStyle(fontSize: 18),
+                                                                ),
+                                                                const SizedBox(width: 8),
+                                                                Text(
+                                                                  opt['label'] as String,
+                                                                  style: TextStyle(
+                                                                    fontSize: 13,
+                                                                    fontWeight: FontWeight.w600,
+                                                                    color: isSelected ? Colors.white : const Color(0xFF1C1C1E),
+                                                                    letterSpacing: -0.1,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildHomeContent() {
@@ -268,17 +609,64 @@ class _HomePageState extends State<HomePage>
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4A6FA5).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.notifications_outlined,
-                  color: Color(0xFF4A6FA5),
-                  size: 20,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4A6FA5).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.notifications_outlined,
+                      color: Color(0xFF4A6FA5),
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () async {
+                      HapticFeedback.lightImpact();
+                      final mood = await _openEmotionDialog();
+                      if (!mounted) return;
+                      if (mood == 'Sad') {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const SupportMessagesPage(
+                              title: 'Feeling Sad',
+                              messages: [
+                                "Why? It's not worth it! Write down your feelings in order to make a solution.",
+                                'Laughter is the best medicines. Watch something funny!',
+                                'Most Importantly, SMILE! Smiling can become contagious. If you feel depressed, smiling can help elevate your mood.',
+                                "If you need to crying definitely helps. Don't hold it back because you will feel a lot better.",
+                                'Never Give Up on yourself!',
+                                'Distract your mind from bad thoughts!',
+                                'Exercise to divert your mind and to feel better. Exercising helps you get better mentally. It helps with frustations and getting things off your mind while building muscle.',
+                                'Do not blame yourself. YOU ARE WORTH IT!',
+                                'Listen to some of you favorite songs and dance it off.',
+                                'If you know a place, you should go jump on a trampoline. It is a lot of fun and also incorporates cardio for exercising.',
+                                'Have A Great Day & Keep Smiling!',
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4A6FA5).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.mood,
+                        color: Color(0xFF4A6FA5),
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -638,15 +1026,167 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _buildProfileContent() {
-    return const Center(
-      child: Text(
-        'Profile Settings',
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF1C1C1E),
+  Widget _profileCard({required String title, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(0.95),
+            Colors.white.withOpacity(0.85),
+          ],
         ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4A6FA5).withOpacity(0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1C1C1E),
+              letterSpacing: -0.2,
+            ),
+          ),
+          const SizedBox(height: 10),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileContent() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF4A6FA5)),
+                onPressed: () {
+                  setState(() => _selectedIndex = 0);
+                },
+              ),
+              const SizedBox(width: 4),
+              const Text(
+                'Profile',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1C1C1E),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _profileCard(
+            title: 'Mindfulness Journey',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: const [
+                    Icon(Icons.local_florist_outlined, color: Color(0xFF4A6FA5), size: 26),
+                    SizedBox(width: 12),
+                    Expanded(child: Text('Gentle, science-backed practices inspired by Headspace and Calm.')),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: const [
+                    Icon(Icons.stars_rounded, color: Color(0xFF4A6FA5), size: 26),
+                    SizedBox(width: 12),
+                    Expanded(child: Text('Daily Streak: 3 days  •  Mindful Minutes: 85')),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: const [
+                    Icon(Icons.self_improvement, color: Color(0xFF4A6FA5), size: 26),
+                    SizedBox(width: 12),
+                    Expanded(child: Text('Focus areas: Stress Relief, Better Sleep, Calm Focus')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          _profileCard(
+            title: 'Reminders & Routine',
+            child: Row(
+              children: [
+                const Icon(Icons.notifications_active_outlined, color: Color(0xFF4A6FA5), size: 26),
+                const SizedBox(width: 12),
+                const Expanded(child: Text('Evening wind-down at 9:00 PM  •  Daily 5‑min breathe')),
+                TextButton(onPressed: () {}, child: const Text('Edit')),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          _profileCard(
+            title: 'User Agreement',
+            child: Row(
+              children: [
+                const Icon(Icons.description_outlined, color: Color(0xFF4A6FA5), size: 26),
+                const SizedBox(width: 12),
+                const Expanded(child: Text('Mindful, compassionate use. Clear, friendly terms.')),
+                TextButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text('User Agreement'),
+                        content: const Text('We believe in clarity and care. Our guidelines focus on wellbeing, privacy, and gentle reminders — influenced by the approachable style of leading mindfulness apps.'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+                        ],
+                      ),
+                    );
+                  },
+                  child: const Text('View'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Logout
+          _profileCard(
+            title: 'Logout',
+            child: Row(
+              children: [
+                const Icon(Icons.logout, color: Color(0xFFB00020), size: 26),
+                const SizedBox(width: 12),
+                const Expanded(child: Text('Sign out of your account.')),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4A6FA5),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const LoginPage()),
+                      (route) => false,
+                    );
+                  },
+                  child: const Text('Logout'),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -729,7 +1269,7 @@ class _HomePageState extends State<HomePage>
               color: isSelected 
                   ? Colors.white
                   : const Color(0xFF8E8E93),
-              size: 22,
+              size: 26,
             ),
             const SizedBox(height: 4),
             Text(

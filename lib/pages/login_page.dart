@@ -201,6 +201,16 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final size = mq.size;
+    final isSmallHeight = size.height < 700;
+    final isNarrow = size.width < 360;
+    final hUnit = size.height / 812.0;
+    final wUnit = size.width / 375.0;
+    final topSpace = isSmallHeight ? 40.0 * hUnit : 80.0 * hUnit;
+    final sectionSpaceLarge = isSmallHeight ? 20.0 * hUnit : 32.0 * hUnit;
+    final sectionSpaceMedium = isSmallHeight ? 14.0 * hUnit : 20.0 * hUnit;
+    final horizontalPad = isNarrow ? 16.0 : 24.0;
     return Scaffold(
       body: Stack(
         children: [
@@ -217,21 +227,21 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               child: SlideTransition(
                 position: _slideAnimation,
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPad, vertical: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 80),
+                      SizedBox(height: topSpace),
                   
                       // Animated logo with app name (horizontal)
                       _buildAnimatedLogo(),
                       
-                      const SizedBox(height: 20),
+                      SizedBox(height: sectionSpaceMedium),
                       
                       // Breathing reminder
                       _buildBreathingReminder(),
                       
-                      const SizedBox(height: 32),
+                      SizedBox(height: sectionSpaceLarge),
                       
                       // Login/Sign up form with glassmorphism
                       ScaleTransition(
@@ -242,7 +252,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         ),
                       ),
                       
-                      const SizedBox(height: 32),
+                      SizedBox(height: sectionSpaceLarge),
                       
                       // Social buttons after sign in
                       FadeTransition(
@@ -256,12 +266,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         ),
                       ),
                       
-                      const SizedBox(height: 24),
+                      SizedBox(height: sectionSpaceMedium),
                       
                       // Toggle sign up/login
                       _buildTogglePrompt(),
+                      const SizedBox(height: 12),
+                      // Footer
+                      _buildFooterCopyright(),
                       
-                      const SizedBox(height: 32),
+                      SizedBox(height: sectionSpaceLarge),
                     ],
                   ),
                 ),
@@ -404,6 +417,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     return AnimatedBuilder(
       animation: _breathingAnimation,
       builder: (context, child) {
+        final size = MediaQuery.of(context).size;
+        final isSmallHeight = size.height < 700;
+        final cardPad = isSmallHeight ? 20.0 : 32.0;
         return Transform.scale(
           scale: 1.0 + (_breathingAnimation.value - 1.0) * 0.015,
           child: ClipRRect(
@@ -411,7 +427,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
               child: Container(
-                padding: const EdgeInsets.all(32),
+                padding: EdgeInsets.all(cardPad),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -459,6 +475,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     return AnimatedBuilder(
       animation: _breathingAnimation,
       builder: (context, child) {
+        final size = MediaQuery.of(context).size;
+        final isNarrow = size.width < 360;
+        final logoSize = isNarrow ? 56.0 : 72.0;
+        final titleSize = isNarrow ? 20.0 : 24.0;
         return Transform.scale(
           scale: 0.95 + (_breathingAnimation.value - 1.0) * 0.5,
           child: Padding(
@@ -468,8 +488,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               children: [
                 // Logo with enhanced breathing
                 Container(
-                  width: 72,
-                  height: 72,
+                  width: logoSize,
+                  height: logoSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     boxShadow: [
@@ -496,25 +516,27 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         ),
                         child: const Icon(
                           Icons.self_improvement,
-                          size: 36,
+                          size: 32,
                           color: Colors.white,
                         ),
                       );
                     },
                   ),
                 ),
-                const SizedBox(width: 16),
-                // App name with better styling
-                const Flexible(
-                  child: Text(
-                    'Frown Upside Down',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w300,
-                      color: Color(0xFF2C4A7C),
-                      letterSpacing: 1.5,
+                SizedBox(width: isNarrow ? 8 : 16),
+                // App name with better styling, scaled to fit
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Frown Upside Down',
+                      style: TextStyle(
+                        fontSize: titleSize,
+                        fontWeight: FontWeight.w300,
+                        color: const Color(0xFF2C4A7C),
+                        letterSpacing: 1.1,
+                      ),
                     ),
                   ),
                 ),
@@ -531,7 +553,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       animation: _breathingAnimation,
       builder: (context, child) {
         return Opacity(
-          opacity: 0.6 + (_breathingAnimation.value - 1.0) * 5,
+          opacity: math.min(1.0, math.max(0.0, 0.6 + (_breathingAnimation.value - 1.0) * 5)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -552,7 +574,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       BoxShadow(
                         color: const Color(0xFF4A6FA5).withOpacity(0.6),
                         blurRadius: 15,
-                        spreadRadius: 2,
+                        offset: const Offset(0, 8),
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -599,8 +626,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   Widget _buildSocialButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 20,
+      runSpacing: 12,
       children: [
         // Apple icon
         _buildAnimatedSocialIcon(
@@ -649,8 +678,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 onPressed();
               },
               child: Container(
-                width: 56,
-                height: 56,
+                width: 70,
+                height: 70,
                 decoration: BoxDecoration(
                   color: _getSocialBackgroundColor(type),
                   shape: BoxShape.circle,
@@ -687,18 +716,18 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         return const Icon(
           Icons.apple,
           color: Colors.white,
-          size: 28,
+          size: 36,
         );
       case SocialButtonType.google:
         return CustomPaint(
-          size: const Size(26, 26),
+          size: const Size(32, 32),
           painter: GoogleGPainter(),
         );
       case SocialButtonType.facebook:
         return const Icon(
           Icons.facebook,
           color: Colors.white,
-          size: 28,
+          size: 36,
         );
     }
   }
@@ -826,6 +855,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     Widget? suffixIcon,
     String? Function(String?)? validator,
   }) {
+    final size = MediaQuery.of(context).size;
+    final isNarrow = size.width < 360;
+    final fieldVPad = isNarrow ? 12.0 : 14.0;
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -834,10 +866,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: Icon(icon, color: Colors.grey[600]),
+        prefixIcon: Icon(icon, color: Colors.grey[600], size: 30),
         suffixIcon: suffixIcon,
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: fieldVPad),
         filled: true,
         fillColor: const Color(0xFFF5F8FF),
         border: OutlineInputBorder(
@@ -962,10 +994,26 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   color: Color(0xFF4A6FA5),
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
-                  letterSpacing: 0.8,
                 ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooterCopyright() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Center(
+        child: Text(
+          '© 2025 Frown Upside Down',
+          style: TextStyle(
+            color: Colors.black.withOpacity(0.45),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            letterSpacing: -0.1,
           ),
         ),
       ),
