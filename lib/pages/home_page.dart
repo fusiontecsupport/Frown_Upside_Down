@@ -552,7 +552,7 @@ class _HomePageState extends State<HomePage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Welcome Header with Emotion Tracker
+                // Daily Inspiration
                 _buildWelcomeHeader(),
                 const SizedBox(height: 20),
                 
@@ -560,9 +560,17 @@ class _HomePageState extends State<HomePage>
                 _buildDailyEmotionStatus(),
                 const SizedBox(height: 20),
                 
+                // Mood Improvement Streak
+                _buildStreakCard(),
+                const SizedBox(height: 20),
+                
                 // Quick Actions for Mood Improvement
                 _buildQuickActions(),
                 const SizedBox(height: 24),
+                
+                // Emotional Wellness Tips
+                _buildWellnessTips(),
+                const SizedBox(height: 20),
                 
                 // Content Categories
                 _buildContentCategories(),
@@ -753,13 +761,263 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+  Widget _buildStreakCard() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.25),
+                Colors.white.withOpacity(0.15),
+                Colors.white.withOpacity(0.10),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: kPrimary.withOpacity(0.15),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 60,
+                offset: const Offset(0, 20),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Streak icon
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [kSecondary, kPrimary],
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: kSecondary.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.local_fire_department,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Happiness Streak',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1C1C1E),
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Keep turning frowns upside down!',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF8E8E93),
+                        letterSpacing: -0.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Streak count
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [kSecondary.withOpacity(0.2), kPrimary.withOpacity(0.1)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: kPrimary.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: const Text(
+                  '7 Days',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF4A6FA5),
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWellnessTips() {
+    final tips = [
+      {
+        'title': 'Practice Gratitude',
+        'description': 'Write 3 things you\'re grateful for',
+        'icon': Icons.favorite_border,
+        'color': const Color(0xFFFF6B6B),
+      },
+      {
+        'title': 'Deep Breathing',
+        'description': 'Take 5 deep breaths to calm down',
+        'icon': Icons.air,
+        'color': const Color(0xFF4ECDC4),
+      },
+      {
+        'title': 'Connect & Smile',
+        'description': 'Reach out to someone special',
+        'icon': Icons.people_outline,
+        'color': const Color(0xFFFFE66D),
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Wellness Tips',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1C1C1E),
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 150,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: tips.length,
+            itemBuilder: (context, index) {
+              final tip = tips[index];
+              return Padding(
+                padding: EdgeInsets.only(right: index == tips.length - 1 ? 0 : 12),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    child: Container(
+                      width: 180,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withOpacity(0.25),
+                            Colors.white.withOpacity(0.15),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kPrimary.withOpacity(0.12),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: (tip['color'] as Color).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              tip['icon'] as IconData,
+                              color: tip['color'] as Color,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Flexible(
+                            child: Text(
+                              tip['title'] as String,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1C1C1E),
+                                letterSpacing: -0.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Flexible(
+                            child: Text(
+                              tip['description'] as String,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                color: Color(0xFF8E8E93),
+                                letterSpacing: -0.1,
+                                height: 1.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildContentCategories() {
     final categories = [
-      {'name': 'All', 'icon': Icons.apps, 'count': '28'},
-      {'name': 'Happiness', 'icon': Icons.sentiment_very_satisfied, 'count': '10'},
-      {'name': 'Motivation', 'icon': Icons.emoji_events, 'count': '8'},
-      {'name': 'Relaxation', 'icon': Icons.spa, 'count': '6'},
-      {'name': 'Positivity', 'icon': Icons.wb_sunny, 'count': '4'},
+      {'name': 'All', 'icon': Icons.apps, 'count': '12'},
+      {'name': 'Happiness', 'icon': Icons.sentiment_very_satisfied, 'count': '4'},
+      {'name': 'Motivation', 'icon': Icons.emoji_events, 'count': '3'},
+      {'name': 'Relaxation', 'icon': Icons.spa, 'count': '2'},
+      {'name': 'Positivity', 'icon': Icons.wb_sunny, 'count': '3'},
     ];
 
     return Column(
@@ -871,8 +1129,8 @@ class _HomePageState extends State<HomePage>
     final contentItems = [
       {
         'type': 'video',
-        'title': 'Turn Your Day Around',
-        'subtitle': 'Simple exercises to boost your mood instantly',
+        'title': 'Morning Happiness Routine',
+        'subtitle': 'Start your day with a smile - 5 simple steps',
         'duration': '8 min',
         'author': 'Emma Wilson',
         'likes': '3.2k',
@@ -889,7 +1147,7 @@ class _HomePageState extends State<HomePage>
       },
       {
         'type': 'image',
-        'title': 'Daily Gratitude Journal',
+        'title': 'Gratitude Journal Guide',
         'subtitle': 'Transform negative thoughts into positive ones',
         'duration': '5 min read',
         'author': 'Dr. Lisa Park',
@@ -898,7 +1156,7 @@ class _HomePageState extends State<HomePage>
       },
       {
         'type': 'video',
-        'title': 'Smile Challenge',
+        'title': 'Laughter Yoga Session',
         'subtitle': 'Fun activities to make you laugh and smile',
         'duration': '12 min',
         'author': 'Happy Hearts',
@@ -907,8 +1165,8 @@ class _HomePageState extends State<HomePage>
       },
       {
         'type': 'audio',
-        'title': 'Motivational Stories',
-        'subtitle': 'Inspiring tales of overcoming sadness',
+        'title': 'Overcoming Sadness',
+        'subtitle': 'Inspiring stories of resilience and hope',
         'duration': '20 min',
         'author': 'Hope Talks',
         'likes': '5.3k',
@@ -916,8 +1174,8 @@ class _HomePageState extends State<HomePage>
       },
       {
         'type': 'image',
-        'title': 'Positive Affirmations',
-        'subtitle': 'Daily mantras to lift your spirits',
+        'title': 'Daily Affirmations',
+        'subtitle': 'Powerful mantras to boost your confidence',
         'duration': '3 min read',
         'author': 'Mindful Joy',
         'likes': '3.9k',
@@ -925,8 +1183,8 @@ class _HomePageState extends State<HomePage>
       },
       {
         'type': 'video',
-        'title': 'Nature Therapy Walk',
-        'subtitle': 'Peaceful outdoor scenes for relaxation',
+        'title': 'Nature Sounds Therapy',
+        'subtitle': 'Peaceful outdoor scenes for instant calm',
         'duration': '15 min',
         'author': 'Nature Heals',
         'likes': '4.1k',
@@ -934,12 +1192,48 @@ class _HomePageState extends State<HomePage>
       },
       {
         'type': 'audio',
-        'title': 'Laughter Therapy',
-        'subtitle': 'Comedy clips to turn frowns upside down',
+        'title': 'Comedy Hour',
+        'subtitle': 'Hilarious clips to turn frowns upside down',
         'duration': '25 min',
         'author': 'Laugh More',
         'likes': '7.2k',
         'category': 'Happiness',
+      },
+      {
+        'type': 'video',
+        'title': 'Self-Love Practice',
+        'subtitle': 'Learn to appreciate yourself more each day',
+        'duration': '10 min',
+        'author': 'Love Yourself',
+        'likes': '5.7k',
+        'category': 'Positivity',
+      },
+      {
+        'type': 'image',
+        'title': 'Mood Tracking Tips',
+        'subtitle': 'Understand your emotions better',
+        'duration': '4 min read',
+        'author': 'Wellness Guide',
+        'likes': '2.8k',
+        'category': 'Motivation',
+      },
+      {
+        'type': 'audio',
+        'title': 'Calming Rain Sounds',
+        'subtitle': 'Soothing sounds for stress relief',
+        'duration': '45 min',
+        'author': 'Peace Sounds',
+        'likes': '8.1k',
+        'category': 'Relaxation',
+      },
+      {
+        'type': 'video',
+        'title': 'Building Resilience',
+        'subtitle': 'Bounce back stronger from challenges',
+        'duration': '18 min',
+        'author': 'Strong Mind',
+        'likes': '4.9k',
+        'category': 'Motivation',
       },
     ];
 
