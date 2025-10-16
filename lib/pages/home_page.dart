@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'support_messages_page.dart';
 import 'login_page.dart';
+import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
   final String planType;
@@ -19,6 +20,16 @@ class _HomePageState extends State<HomePage>
   late AnimationController _breathingController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _breathingAnimation;
+
+  // Local Calm-inspired palette
+  final Color kPrimary = const Color(0xFF00A8CC); // ocean
+  final Color kSecondary = const Color(0xFF6C63FF); // cool lavender/cobalt
+  final Color kAccent = const Color(0xFF7BCFE9); // light aqua
+  final List<Color> kBg = const [
+    Color(0xFFE9F5FF),
+    Color(0xFFEAF0FF),
+    Color(0xFFEEF3FF),
+  ];
 
   int _selectedIndex = 0;
   bool _emotionComplete = false;
@@ -131,10 +142,9 @@ class _HomePageState extends State<HomePage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFF0F4F8),
-            Color(0xFFE8F2F7),
-            Color(0xFFDCE9F1),
-            Color(0xFFD1E0EB),
+            Color(0xFFE9F5FF),
+            Color(0xFFEAF0FF),
+            Color(0xFFEEF3FF),
           ],
         ),
       ),
@@ -160,9 +170,9 @@ class _HomePageState extends State<HomePage>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: [
-                        const Color(0xFF4A6FA5).withOpacity(0.12),
-                        const Color(0xFF5B7DB1).withOpacity(0.10),
-                        const Color(0xFF6B8FC3).withOpacity(0.08),
+                        kPrimary.withOpacity(0.12),
+                        kSecondary.withOpacity(0.10),
+                        kAccent.withOpacity(0.08),
                       ][index % 3],
                     ),
                   ),
@@ -492,33 +502,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildHomeContent() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Welcome header - more compact
-          _buildWelcomeHeader(),
-          
-          const SizedBox(height: 20),
-          
-          // Plan status card - smaller
-          _buildPlanStatusCard(),
-          
-          const SizedBox(height: 20),
-          
-          // Quick actions - more compact
-          _buildQuickActions(),
-          
-          const Spacer(),
-          
-          // Featured meditations - horizontal row instead of scrolling
-          _buildFeaturedMeditations(),
-          
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
+    return const SizedBox.shrink();
   }
 
   Widget _buildWelcomeHeader() {
@@ -532,14 +516,14 @@ class _HomePageState extends State<HomePage>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withOpacity(0.9),
-                Colors.white.withOpacity(0.7),
+                Colors.white.withOpacity(0.92),
+                Colors.white.withOpacity(0.72),
               ],
             ),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF4A6FA5).withOpacity(0.1),
+                color: kPrimary.withOpacity(0.12),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -553,13 +537,13 @@ class _HomePageState extends State<HomePage>
                   width: 45,
                   height: 45,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF4A6FA5), Color(0xFF5B7DB1)],
+                    gradient: LinearGradient(
+                      colors: [kSecondary, kPrimary],
                     ),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF4A6FA5).withOpacity(0.3),
+                        color: kPrimary.withOpacity(0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -687,18 +671,18 @@ class _HomePageState extends State<HomePage>
           end: Alignment.bottomRight,
           colors: isLifetime 
               ? [
-                  const Color(0xFF4A6FA5),
-                  const Color(0xFF5B7DB1),
+                  kSecondary,
+                  kPrimary,
                 ]
               : [
-                  const Color(0xFF6B8FC3),
-                  const Color(0xFF5B7DB1),
+                  kPrimary,
+                  kAccent,
                 ],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4A6FA5).withOpacity(0.25),
+            color: kPrimary.withOpacity(0.25),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -778,7 +762,7 @@ class _HomePageState extends State<HomePage>
             'Breathe',
             '5 min session',
             Icons.air,
-            const LinearGradient(colors: [Color(0xFF4A6FA5), Color(0xFF5B7DB1)]),
+            LinearGradient(colors: [kPrimary, kAccent]),
           ),
         ),
         const SizedBox(width: 12),
@@ -787,7 +771,7 @@ class _HomePageState extends State<HomePage>
             'Meditate',
             '10 min focus',
             Icons.self_improvement,
-            const LinearGradient(colors: [Color(0xFF5B7DB1), Color(0xFF6B8FC3)]),
+            LinearGradient(colors: [kSecondary, kPrimary]),
           ),
         ),
         const SizedBox(width: 12),
@@ -796,7 +780,7 @@ class _HomePageState extends State<HomePage>
             'Sleep',
             'Relax & rest',
             Icons.bedtime,
-            const LinearGradient(colors: [Color(0xFF6B8FC3), Color(0xFF7BA0D4)]),
+            LinearGradient(colors: [kAccent, kPrimary.withOpacity(0.9)]),
           ),
         ),
       ],
@@ -811,7 +795,7 @@ class _HomePageState extends State<HomePage>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: gradient.colors.first.withOpacity(0.3),
+            color: gradient.colors.first.withOpacity(0.28),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -834,7 +818,7 @@ class _HomePageState extends State<HomePage>
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withOpacity(0.22),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(icon, color: Colors.white, size: 18),
@@ -875,14 +859,14 @@ class _HomePageState extends State<HomePage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.8),
-            Colors.white.withOpacity(0.6),
+            Colors.white.withOpacity(0.86),
+            Colors.white.withOpacity(0.66),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4A6FA5).withOpacity(0.1),
+            color: kPrimary.withOpacity(0.12),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -906,7 +890,7 @@ class _HomePageState extends State<HomePage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4A6FA5).withOpacity(0.1),
+                  color: kPrimary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(
@@ -914,7 +898,7 @@ class _HomePageState extends State<HomePage>
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF4A6FA5),
+                    color: Color(0xFF00A8CC),
                   ),
                 ),
               ),
@@ -953,10 +937,10 @@ class _HomePageState extends State<HomePage>
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF4A6FA5).withOpacity(0.05),
+            color: kPrimary.withOpacity(0.06),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: const Color(0xFF4A6FA5).withOpacity(0.1),
+              color: kPrimary.withOpacity(0.12),
               width: 1,
             ),
           ),
@@ -966,8 +950,8 @@ class _HomePageState extends State<HomePage>
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4A6FA5), Color(0xFF5B7DB1)],
+                  gradient: LinearGradient(
+                    colors: [kSecondary, kPrimary],
                   ),
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -987,10 +971,10 @@ class _HomePageState extends State<HomePage>
               const SizedBox(height: 2),
               Text(
                 duration,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w400,
-                  color: const Color(0xFF8E8E93),
+                  color: Color(0xFF8E8E93),
                 ),
               ),
             ],
@@ -1068,158 +1052,24 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildProfileContent() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF4A6FA5)),
-                onPressed: () {
-                  setState(() => _selectedIndex = 0);
-                },
-              ),
-              const SizedBox(width: 4),
-              const Text(
-                'Profile',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1C1C1E),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _profileCard(
-            title: 'Mindfulness Journey',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: const [
-                    Icon(Icons.local_florist_outlined, color: Color(0xFF4A6FA5), size: 26),
-                    SizedBox(width: 12),
-                    Expanded(child: Text('Gentle, science-backed practices inspired by Headspace and Calm.')),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: const [
-                    Icon(Icons.stars_rounded, color: Color(0xFF4A6FA5), size: 26),
-                    SizedBox(width: 12),
-                    Expanded(child: Text('Daily Streak: 3 days  •  Mindful Minutes: 85')),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: const [
-                    Icon(Icons.self_improvement, color: Color(0xFF4A6FA5), size: 26),
-                    SizedBox(width: 12),
-                    Expanded(child: Text('Focus areas: Stress Relief, Better Sleep, Calm Focus')),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          _profileCard(
-            title: 'Reminders & Routine',
-            child: Row(
-              children: [
-                const Icon(Icons.notifications_active_outlined, color: Color(0xFF4A6FA5), size: 26),
-                const SizedBox(width: 12),
-                const Expanded(child: Text('Evening wind-down at 9:00 PM  •  Daily 5‑min breathe')),
-                TextButton(onPressed: () {}, child: const Text('Edit')),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          _profileCard(
-            title: 'User Agreement',
-            child: Row(
-              children: [
-                const Icon(Icons.description_outlined, color: Color(0xFF4A6FA5), size: 26),
-                const SizedBox(width: 12),
-                const Expanded(child: Text('Mindful, compassionate use. Clear, friendly terms.')),
-                TextButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('User Agreement'),
-                        content: const Text('We believe in clarity and care. Our guidelines focus on wellbeing, privacy, and gentle reminders — influenced by the approachable style of leading mindfulness apps.'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-                        ],
-                      ),
-                    );
-                  },
-                  child: const Text('View'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Logout
-          _profileCard(
-            title: 'Logout',
-            child: Row(
-              children: [
-                const Icon(Icons.logout, color: Color(0xFFB00020), size: 26),
-                const SizedBox(width: 12),
-                const Expanded(child: Text('Sign out of your account.')),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4A6FA5),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const LoginPage()),
-                      (route) => false,
-                    );
-                  },
-                  child: const Text('Logout'),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    return ProfilePage(planType: widget.planType);
   }
 
   Widget _buildBottomNavBar() {
     return Container(
-      margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withOpacity(0.95),
-            Colors.white.withOpacity(0.85),
-          ],
+        color: Colors.white.withOpacity(0.8),
+        border: Border(
+          top: BorderSide(
+            color: kPrimary.withOpacity(0.1),
+            width: 1,
+          ),
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF4A6FA5).withOpacity(0.15),
-            blurRadius: 25,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: Colors.white.withOpacity(0.8),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
       ),
       child: SafeArea(
+        top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -1242,50 +1092,168 @@ class _HomePageState extends State<HomePage>
         HapticFeedback.lightImpact();
         setState(() => _selectedIndex = index);
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          gradient: isSelected 
-              ? const LinearGradient(
-                  colors: [Color(0xFF4A6FA5), Color(0xFF5B7DB1)],
-                )
-              : null,
-          color: isSelected ? null : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: const Color(0xFF4A6FA5).withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isSelected ? filledIcon : outlinedIcon,
+            color: isSelected 
+                ? kPrimary
+                : const Color(0xFF8E8E93),
+            size: 26,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              color: isSelected 
+                  ? kPrimary
+                  : const Color(0xFF8E8E93),
+              letterSpacing: -0.1,
             ),
-          ] : null,
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Sleep visuals ---
+}
+
+class _WeeklySleepBarChart extends StatelessWidget {
+  final List<double> values; // hours slept per day (Mon..Sun)
+  final double goal;
+
+  const _WeeklySleepBarChart({Key? key, required this.values, required this.goal}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final maxValue = (values.fold<double>(0, (p, c) => c > p ? c : p)).clamp(0, 12);
+    final days = const ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Reserve vertical space for label+spacing under each bar to avoid overflow
+        const double labelSpace = 18.0; // approx label + bottom spacing
+        const double betweenBarSpacing = 10.0;
+        final double availableHeight = (constraints.maxHeight - labelSpace).clamp(0.0, constraints.maxHeight);
+        // Make sure total width accounts for spacing only between bars, not after the last one
+        final barWidth = (constraints.maxWidth - 6 * betweenBarSpacing) / 7;
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: List.generate(7, (i) {
+            final v = values[i];
+            final denom = (maxValue == 0 ? 1 : maxValue);
+            final h = availableHeight * (v / denom);
+            final meetsGoal = v >= goal;
+            return Padding(
+              padding: EdgeInsets.only(right: i == 6 ? 0 : betweenBarSpacing),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    width: barWidth,
+                    height: h < 4 ? 4 : h, // ensure a visible minimum height
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: meetsGoal
+                            ? const [Color(0xFF6C63FF), Color(0xFF00A8CC)]
+                            : const [Color(0xFFB0CFE0), Color(0xFFD9ECF7)],
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (meetsGoal ? const Color(0xFF00A8CC) : const Color(0xFF7BCFE9)).withOpacity(0.18),
+                          blurRadius: 10,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    height: 12,
+                    child: Text(
+                      days[i],
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF8E8E93), fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+}
+
+class _SleepDonut extends StatelessWidget {
+  final double sleptHours;
+  final double goalHours;
+
+  const _SleepDonut({Key? key, required this.sleptHours, required this.goalHours}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (sleptHours / goalHours).clamp(0.0, 1.0);
+    return CustomPaint(
+      painter: _DonutPainter(progress: progress),
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isSelected ? filledIcon : outlinedIcon,
-              color: isSelected 
-                  ? Colors.white
-                  : const Color(0xFF8E8E93),
-              size: 26,
-            ),
-            const SizedBox(height: 4),
             Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: isSelected 
-                    ? Colors.white
-                    : const Color(0xFF8E8E93),
-                letterSpacing: -0.1,
-              ),
+              '${(progress * 100).round()}%',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1C1C1E), letterSpacing: -0.2),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${sleptHours.toStringAsFixed(1)} / ${goalHours.toStringAsFixed(0)}h',
+              style: const TextStyle(fontSize: 10, color: Color(0xFF8E8E93)),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _DonutPainter extends CustomPainter {
+  final double progress; // 0..1
+
+  _DonutPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.shortestSide / 2) - 6;
+
+    final backgroundPaint = Paint()
+      ..color = const Color(0xFFE6EEF7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10
+      ..strokeCap = StrokeCap.round;
+
+    final foregroundPaint = Paint()
+      ..shader = const LinearGradient(colors: [Color(0xFF4A6FA5), Color(0xFF5B7DB1)])
+          .createShader(Rect.fromCircle(center: center, radius: radius))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10
+      ..strokeCap = StrokeCap.round;
+
+    // Background circle
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -3.14 / 2, 3.14 * 2, false, backgroundPaint);
+    // Foreground arc
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -3.14 / 2, (3.14 * 2) * progress, false, foregroundPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _DonutPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }

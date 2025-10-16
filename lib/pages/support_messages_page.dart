@@ -514,6 +514,16 @@ class _MessageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String formatText(String input) {
+      final parts = input.split(RegExp(r'(?<=[.!?])\s+'));
+      if (parts.length > 1) {
+        final first = parts.first.trimRight();
+        final rest = parts.sublist(1).join(' ').trimLeft();
+        return '$first\n$rest';
+      }
+      return input;
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -521,7 +531,7 @@ class _MessageView extends StatelessWidget {
         const Icon(Icons.self_improvement, color: Color(0xFF4A6FA5), size: 28),
         const SizedBox(height: 10),
         Text(
-          text,
+          formatText(text),
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 16,
