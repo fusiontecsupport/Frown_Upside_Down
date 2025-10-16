@@ -21,14 +21,14 @@ class _HomePageState extends State<HomePage>
   late Animation<double> _fadeAnimation;
   late Animation<double> _breathingAnimation;
 
-  // Local Calm-inspired palette
-  final Color kPrimary = const Color(0xFF00A8CC); // ocean
-  final Color kSecondary = const Color(0xFF6C63FF); // cool lavender/cobalt
-  final Color kAccent = const Color(0xFF7BCFE9); // light aqua
+  // Login/Profile page color palette
+  final Color kPrimary = const Color(0xFF4A6FA5); // Deep blue
+  final Color kSecondary = const Color(0xFF5B7DB1); // Medium blue
+  final Color kAccent = const Color(0xFF6B8FC3); // Light blue
   final List<Color> kBg = const [
-    Color(0xFFE9F5FF),
-    Color(0xFFEAF0FF),
-    Color(0xFFEEF3FF),
+    Color(0xFFE8F1FF), // Soft sky blue
+    Color(0xFFE0EBFF), // Light periwinkle
+    Color(0xFFD6E4FF), // Pale blue
   ];
 
   int _selectedIndex = 0;
@@ -142,9 +142,9 @@ class _HomePageState extends State<HomePage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFE9F5FF),
-            Color(0xFFEAF0FF),
-            Color(0xFFEEF3FF),
+            Color(0xFFE8F1FF), // Soft sky blue
+            Color(0xFFE0EBFF), // Light periwinkle
+            Color(0xFFD6E4FF), // Pale blue
           ],
         ),
       ),
@@ -154,33 +154,75 @@ class _HomePageState extends State<HomePage>
   Widget _buildFloatingShapes() {
     return Stack(
       children: [
-        ...List.generate(6, (index) {
-          return AnimatedBuilder(
-            animation: _breathingController,
-            builder: (context, child) {
-              final offset = (index * 0.4) + (_breathingController.value * 0.3);
-              return Positioned(
-                left: 40 + (index * 80.0) + (offset * 25),
-                top: 80 + (index * 100.0) + (offset * 20),
-                child: Transform.scale(
-                  scale: 0.7 + (offset * 0.3),
-                  child: Container(
-                    width: 15 + (index * 8.0),
-                    height: 15 + (index * 8.0),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: [
-                        kPrimary.withOpacity(0.12),
-                        kSecondary.withOpacity(0.10),
-                        kAccent.withOpacity(0.08),
-                      ][index % 3],
-                    ),
-                  ),
-                ),
-              );
-            },
-          );
-        }),
+        // Floating peaceful circles matching login page
+        Positioned(
+          top: 100,
+          left: 50,
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF4A6FA5).withOpacity(0.12),
+                  const Color(0xFF4A6FA5).withOpacity(0.04),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 200,
+          right: 80,
+          child: Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF5B7DB1).withOpacity(0.12),
+                  const Color(0xFF5B7DB1).withOpacity(0.04),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 400,
+          left: 30,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF6B8FC3).withOpacity(0.1),
+                  const Color(0xFF6B8FC3).withOpacity(0.03),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 200,
+          right: 40,
+          child: Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF4A6FA5).withOpacity(0.08),
+                  const Color(0xFF4A6FA5).withOpacity(0.02),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -502,157 +544,905 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildHomeContent() {
-    return const SizedBox.shrink();
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Welcome Header with Emotion Tracker
+                _buildWelcomeHeader(),
+                const SizedBox(height: 20),
+                
+                // Daily Emotion Status
+                _buildDailyEmotionStatus(),
+                const SizedBox(height: 20),
+                
+                // Quick Actions for Mood Improvement
+                _buildQuickActions(),
+                const SizedBox(height: 24),
+                
+                // Content Categories
+                _buildContentCategories(),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+        
+        // Content Feed
+        _buildContentFeed(),
+        
+        // Bottom spacing
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 100),
+        ),
+      ],
+    );
   }
 
-  Widget _buildWelcomeHeader() {
-    return AnimatedBuilder(
-      animation: _breathingAnimation,
-      builder: (context, child) {
-        return Container(
+  // State variables for content
+  String _selectedEmotion = 'Happy';
+  String _selectedEmoji = '😀';
+  String _selectedCategory = 'All';
+  
+  Widget _buildDailyEmotionStatus() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withOpacity(0.92),
-                Colors.white.withOpacity(0.72),
+                Colors.white.withOpacity(0.25),
+                Colors.white.withOpacity(0.15),
+                Colors.white.withOpacity(0.10),
               ],
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: kPrimary.withOpacity(0.12),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+                color: kPrimary.withOpacity(0.15),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 60,
+                offset: const Offset(0, 20),
               ),
             ],
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Transform.scale(
-                scale: _breathingAnimation.value,
+              Row(
+                children: [
+                  const Text(
+                    'Today\'s Mood',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1C1C1E),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () async {
+                  HapticFeedback.lightImpact();
+                  final mood = await _openEmotionDialog();
+                  if (mood != null && mounted) {
+                    setState(() {
+                      _selectedEmotion = mood;
+                      _selectedEmoji = {
+                        'Happy': '😀',
+                        'Sad': '😢',
+                        'Disappointed': '😞',
+                        'Stressed': '😣',
+                        'Nervous': '😬',
+                        'Calm': '😌',
+                      }[mood] ?? '😀';
+                    });
+                  }
+                },
                 child: Container(
-                  width: 45,
-                  height: 45,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [kSecondary, kPrimary],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: kSecondary.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'Update',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+                ],
+              ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                AnimatedBuilder(
+                  animation: _breathingController,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: 0.98 + (_breathingController.value * 0.04),
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [kSecondary, kPrimary],
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: kPrimary.withOpacity(0.3),
+                              blurRadius: 15,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            _selectedEmoji,
+                            style: const TextStyle(fontSize: 28),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Feeling $_selectedEmotion',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1C1C1E),
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Let\'s find content to match your mood',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF8E8E93),
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContentCategories() {
+    final categories = [
+      {'name': 'All', 'icon': Icons.apps, 'count': '28'},
+      {'name': 'Happiness', 'icon': Icons.sentiment_very_satisfied, 'count': '10'},
+      {'name': 'Motivation', 'icon': Icons.emoji_events, 'count': '8'},
+      {'name': 'Relaxation', 'icon': Icons.spa, 'count': '6'},
+      {'name': 'Positivity', 'icon': Icons.wb_sunny, 'count': '4'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Browse Content',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1C1C1E),
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 80,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              final isSelected = _selectedCategory == category['name'];
+              
+              return Padding(
+                padding: EdgeInsets.only(right: index == categories.length - 1 ? 0 : 12),
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() {
+                      _selectedCategory = category['name'] as String;
+                    });
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 70,
+                    decoration: BoxDecoration(
+                      gradient: isSelected
+                          ? LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [kSecondary, kPrimary],
+                            )
+                          : LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.white.withOpacity(0.3),
+                                Colors.white.withOpacity(0.2),
+                              ],
+                            ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isSelected ? Colors.transparent : Colors.white.withOpacity(0.4),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isSelected 
+                              ? kSecondary.withOpacity(0.4)
+                              : Colors.black.withOpacity(0.08),
+                          blurRadius: isSelected ? 15 : 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          category['icon'] as IconData,
+                          color: isSelected ? Colors.white : kPrimary,
+                          size: 24,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          category['name'] as String,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected ? Colors.white : kPrimary,
+                            letterSpacing: -0.1,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          category['count'] as String,
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w400,
+                            color: isSelected 
+                                ? Colors.white.withOpacity(0.8)
+                                : const Color(0xFF8E8E93),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContentFeed() {
+    final contentItems = [
+      {
+        'type': 'video',
+        'title': 'Turn Your Day Around',
+        'subtitle': 'Simple exercises to boost your mood instantly',
+        'duration': '8 min',
+        'author': 'Emma Wilson',
+        'likes': '3.2k',
+        'category': 'Happiness',
+      },
+      {
+        'type': 'audio',
+        'title': 'Uplifting Music Mix',
+        'subtitle': 'Feel-good tunes to brighten your spirit',
+        'duration': '30 min',
+        'author': 'Joy Sounds',
+        'likes': '6.8k',
+        'category': 'Happiness',
+      },
+      {
+        'type': 'image',
+        'title': 'Daily Gratitude Journal',
+        'subtitle': 'Transform negative thoughts into positive ones',
+        'duration': '5 min read',
+        'author': 'Dr. Lisa Park',
+        'likes': '2.1k',
+        'category': 'Positivity',
+      },
+      {
+        'type': 'video',
+        'title': 'Smile Challenge',
+        'subtitle': 'Fun activities to make you laugh and smile',
+        'duration': '12 min',
+        'author': 'Happy Hearts',
+        'likes': '4.5k',
+        'category': 'Happiness',
+      },
+      {
+        'type': 'audio',
+        'title': 'Motivational Stories',
+        'subtitle': 'Inspiring tales of overcoming sadness',
+        'duration': '20 min',
+        'author': 'Hope Talks',
+        'likes': '5.3k',
+        'category': 'Motivation',
+      },
+      {
+        'type': 'image',
+        'title': 'Positive Affirmations',
+        'subtitle': 'Daily mantras to lift your spirits',
+        'duration': '3 min read',
+        'author': 'Mindful Joy',
+        'likes': '3.9k',
+        'category': 'Positivity',
+      },
+      {
+        'type': 'video',
+        'title': 'Nature Therapy Walk',
+        'subtitle': 'Peaceful outdoor scenes for relaxation',
+        'duration': '15 min',
+        'author': 'Nature Heals',
+        'likes': '4.1k',
+        'category': 'Relaxation',
+      },
+      {
+        'type': 'audio',
+        'title': 'Laughter Therapy',
+        'subtitle': 'Comedy clips to turn frowns upside down',
+        'duration': '25 min',
+        'author': 'Laugh More',
+        'likes': '7.2k',
+        'category': 'Happiness',
+      },
+    ];
+
+    // Filter content based on selected category
+    final filteredContent = _selectedCategory == 'All' 
+        ? contentItems 
+        : contentItems.where((item) => item['category'] == _selectedCategory).toList();
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final item = filteredContent[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildContentCard(item),
+            );
+          },
+          childCount: filteredContent.length,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContentCard(Map<String, dynamic> item) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.25),
+                Colors.white.withOpacity(0.15),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: kPrimary.withOpacity(0.12),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 60,
+                offset: const Offset(0, 20),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(24),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                // Handle content tap
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Content Header
+                Row(
+                  children: [
+                    _buildContentTypeIcon(item['type'] as String),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item['title'] as String,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1C1C1E),
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            item['subtitle'] as String,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xFF8E8E93),
+                              letterSpacing: -0.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _buildContentActions(),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Content Preview/Thumbnail
+                _buildContentPreview(item),
+                
+                const SizedBox(height: 16),
+                
+                // Content Footer
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 12,
+                      backgroundColor: kPrimary.withOpacity(0.1),
+                      child: Text(
+                        (item['author'] as String)[0],
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: kPrimary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      item['author'] as String,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1C1C1E),
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.access_time,
+                      size: 14,
+                      color: const Color(0xFF8E8E93),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      item['duration'] as String,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFF8E8E93),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Icon(
+                      Icons.favorite_outline,
+                      size: 14,
+                      color: const Color(0xFF8E8E93),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      item['likes'] as String,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFF8E8E93),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContentTypeIcon(String type) {
+    IconData icon;
+    List<Color> gradientColors;
+    
+    switch (type) {
+      case 'video':
+        icon = Icons.play_circle_filled;
+        gradientColors = [kSecondary, kPrimary];
+        break;
+      case 'audio':
+        icon = Icons.headphones;
+        gradientColors = [kPrimary, kAccent];
+        break;
+      case 'image':
+        icon = Icons.article;
+        gradientColors = [kAccent, kPrimary];
+        break;
+      default:
+        icon = Icons.circle;
+        gradientColors = [kPrimary, kSecondary];
+    }
+    
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: gradientColors[0].withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Icon(
+        icon,
+        color: Colors.white,
+        size: 20,
+      ),
+    );
+  }
+
+  Widget _buildContentActions() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            // Handle bookmark
+          },
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.4),
+                width: 1,
+              ),
+            ),
+            child: Icon(
+              Icons.bookmark_outline,
+              size: 16,
+              color: kPrimary,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            // Handle share
+          },
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.4),
+                width: 1,
+              ),
+            ),
+            child: Icon(
+              Icons.share_outlined,
+              size: 16,
+              color: kPrimary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContentPreview(Map<String, dynamic> item) {
+    final type = item['type'] as String;
+    
+    return Container(
+      height: 180,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(0.2),
+            Colors.white.withOpacity(0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Background pattern or placeholder
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: type == 'video'
+                          ? [kSecondary, kPrimary]
+                          : type == 'audio'
+                              ? [kPrimary, kAccent]
+                              : [kAccent, kPrimary],
                     ),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color: kPrimary.withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+                        blurRadius: 15,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
-                  child: Center(
-                    child: Image.asset(
-                      'assets/splash/logo.png',
-                      width: 22,
-                      height: 22,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.self_improvement,
-                          size: 22,
-                          color: Colors.white,
-                        );
-                      },
-                    ),
+                  child: Icon(
+                    type == 'video' 
+                        ? Icons.play_arrow
+                        : type == 'audio'
+                            ? Icons.volume_up
+                            : Icons.image,
+                    color: Colors.white,
+                    size: 32,
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Welcome back!',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1C1C1E),
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Ready for mindfulness?',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xFF8E8E93),
-                        letterSpacing: -0.1,
-                      ),
+                const SizedBox(height: 12),
+                Text(
+                  type == 'video' 
+                      ? 'Video Content'
+                      : type == 'audio'
+                          ? 'Audio Content'
+                          : 'Visual Guide',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: kPrimary,
+                    letterSpacing: -0.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Play button overlay for video/audio
+          if (type == 'video' || type == 'audio')
+            Positioned(
+              bottom: 12,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [kSecondary, kPrimary],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: kSecondary.withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
+                child: Icon(
+                  type == 'video' ? Icons.play_arrow : Icons.headphones,
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWelcomeHeader() {
+    // Daily inspirational quotes
+    final quotes = [
+      {'text': 'Every day is a fresh start. Choose happiness!', 'icon': Icons.wb_sunny},
+      {'text': 'Your smile can change someone\'s day, including yours.', 'icon': Icons.sentiment_very_satisfied},
+      {'text': 'Small steps forward are still progress.', 'icon': Icons.trending_up},
+      {'text': 'You are stronger than you think.', 'icon': Icons.favorite},
+      {'text': 'Turn your frown upside down - you\'ve got this!', 'icon': Icons.emoji_emotions},
+      {'text': 'Believe in yourself and magic will happen.', 'icon': Icons.auto_awesome},
+      {'text': 'Today is full of possibilities.', 'icon': Icons.star},
+    ];
+    
+    // Select quote based on day of week
+    final dayIndex = DateTime.now().weekday % quotes.length;
+    final todayQuote = quotes[dayIndex];
+    
+    return AnimatedBuilder(
+      animation: _breathingAnimation,
+      builder: (context, child) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.25),
+                    Colors.white.withOpacity(0.15),
+                    Colors.white.withOpacity(0.10),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: kPrimary.withOpacity(0.15),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 60,
+                    offset: const Offset(0, 20),
+                  ),
+                ],
+              ),
+              child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4A6FA5).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.notifications_outlined,
-                      color: Color(0xFF4A6FA5),
-                      size: 26,
+                  // Animated icon
+                  Transform.scale(
+                    scale: _breathingAnimation.value,
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [kSecondary, kPrimary],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: kPrimary.withOpacity(0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        todayQuote['icon'] as IconData,
+                        color: Colors.white,
+                        size: 26,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () async {
-                      HapticFeedback.lightImpact();
-                      final mood = await _openEmotionDialog();
-                      if (!mounted) return;
-                      if (mood == 'Sad') {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const SupportMessagesPage(
-                              title: 'Feeling Sad',
-                              messages: [
-                                "Why? It's not worth it! Write down your feelings in order to make a solution.",
-                                'Laughter is the best medicines. Watch something funny!',
-                                'Most Importantly, SMILE! Smiling can become contagious. If you feel depressed, smiling can help elevate your mood.',
-                                "If you need to crying definitely helps. Don't hold it back because you will feel a lot better.",
-                                'Never Give Up on yourself!',
-                                'Distract your mind from bad thoughts!',
-                                'Exercise to divert your mind and to feel better. Exercising helps you get better mentally. It helps with frustations and getting things off your mind while building muscle.',
-                                'Do not blame yourself. YOU ARE WORTH IT!',
-                                'Listen to some of you favorite songs and dance it off.',
-                                'If you know a place, you should go jump on a trampoline. It is a lot of fun and also incorporates cardio for exercising.',
-                                'Have A Great Day & Keep Smiling!',
-                              ],
-                            ),
+                  const SizedBox(width: 16),
+                  // Daily inspiration text
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Daily Inspiration',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF8E8E93),
+                            letterSpacing: 0.5,
                           ),
-                        );
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4A6FA5).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.mood,
-                        color: Color(0xFF4A6FA5),
-                        size: 24,
-                      ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          todayQuote['text'] as String,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1C1C1E),
+                            letterSpacing: -0.2,
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         );
       },
@@ -755,33 +1545,60 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildQuickActions() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _buildActionCard(
-            'Breathe',
-            '5 min session',
-            Icons.air,
-            LinearGradient(colors: [kPrimary, kAccent]),
+        const Text(
+          'Quick Mood Boosters',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1C1C1E),
+            letterSpacing: -0.3,
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildActionCard(
-            'Meditate',
-            '10 min focus',
-            Icons.self_improvement,
-            LinearGradient(colors: [kSecondary, kPrimary]),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildActionCard(
-            'Sleep',
-            'Relax & rest',
-            Icons.bedtime,
-            LinearGradient(colors: [kAccent, kPrimary.withOpacity(0.9)]),
-          ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                'Smile',
+                'Turn it around',
+                Icons.sentiment_very_satisfied,
+                LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [kSecondary, kPrimary],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionCard(
+                'Laugh',
+                'Feel better',
+                Icons.emoji_emotions,
+                LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [kPrimary, kAccent],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionCard(
+                'Relax',
+                'Find peace',
+                Icons.spa,
+                LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [kAccent, kPrimary],
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -985,14 +1802,52 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildMeditationContent() {
-    return const Center(
-      child: Text(
-        'Meditation Library',
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF1C1C1E),
-        ),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [kSecondary, kPrimary],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: kSecondary.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.favorite,
+              color: Colors.white,
+              size: 36,
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Wellness Center',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1C1C1E),
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Your journey to happiness',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: const Color(0xFF8E8E93),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1074,7 +1929,7 @@ class _HomePageState extends State<HomePage>
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(0, Icons.home_outlined, Icons.home, 'Home'),
-              _buildNavItem(1, Icons.self_improvement_outlined, Icons.self_improvement, 'Meditate'),
+              _buildNavItem(1, Icons.favorite_outline, Icons.favorite, 'Wellness'),
               _buildNavItem(2, Icons.trending_up_outlined, Icons.trending_up, 'Progress'),
               _buildNavItem(3, Icons.person_outline, Icons.person, 'Profile'),
             ],
