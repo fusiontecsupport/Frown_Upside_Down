@@ -5,6 +5,7 @@ import 'emotion_content_page.dart';
 import 'support_messages_page.dart';
 import 'login_page.dart';
 import 'profile_page.dart';
+import 'wellness_components.dart';
 
 class HomePage extends StatefulWidget {
   final String planType;
@@ -2415,64 +2416,1590 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildMeditationContent() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildWellnessHeader(),
+                const SizedBox(height: 24),
+                _buildDailyWellnessQuote(),
+                const SizedBox(height: 24),
+                _buildMoodCheckIn(),
+                const SizedBox(height: 24),
+                _buildWellnessPrograms(),
+                const SizedBox(height: 24),
+                _buildQuickMeditations(),
+                const SizedBox(height: 24),
+                _buildSleepSection(),
+                const SizedBox(height: 24),
+                _buildBreathingExercises(),
+                const SizedBox(height: 24),
+                _buildWellnessChallenges(),
+                const SizedBox(height: 100), // Bottom padding
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Wellness Page Components
+  Widget _buildWellnessHeader() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.25),
+                Colors.white.withOpacity(0.15),
+                Colors.white.withOpacity(0.10),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: kPrimary.withOpacity(0.1),
+                blurRadius: 30,
+                offset: const Offset(0, 15),
+              ),
+              BoxShadow(
+                color: Colors.white.withOpacity(0.8),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              AnimatedBuilder(
+                animation: _breathingAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _breathingAnimation.value,
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [kPrimary, kSecondary, kAccent],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: kSecondary.withOpacity(0.4),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.spa,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Wellness Hub',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1C1C1E),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Your daily dose of mindfulness',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF8E8E93),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [kAccent.withOpacity(0.2), kSecondary.withOpacity(0.2)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  '7 Day Streak 🔥',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1C1C1E),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDailyWellnessQuote() {
+    final quotes = [
+      "Peace comes from within. Do not seek it without. 🧘‍♀️",
+      "Breathe in peace, breathe out stress. 🌸",
+      "Your mind is a garden, your thoughts are the seeds. 🌱",
+      "In stillness, find your strength. 💪",
+      "Every breath is a new beginning. 🌅",
+      "Mindfulness is about being fully awake in our lives. ✨",
+      "The present moment is the only time over which we have dominion. 🕊️",
+    ];
+    
+    final today = DateTime.now().weekday - 1;
+    final quote = quotes[today % quotes.length];
+    
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.2),
+                Colors.white.withOpacity(0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: kAccent.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  AnimatedBuilder(
+                    animation: _breathingAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _breathingAnimation.value,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [kAccent, kSecondary],
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.format_quote,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Daily Wisdom',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1C1C1E),
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                quote,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF1C1C1E),
+                  height: 1.4,
+                  letterSpacing: -0.1,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoodCheckIn() {
+    return WellnessComponents.buildMoodCheckIn(_breathingAnimation);
+  }
+
+  Widget _buildWellnessPrograms() {
+    return WellnessComponents.buildWellnessPrograms();
+  }
+
+  Widget _buildQuickMeditations() {
+    return WellnessComponents.buildQuickMeditations();
+  }
+
+  Widget _buildSleepSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Sleep & Relaxation',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1C1C1E),
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.2),
+                    Colors.white.withOpacity(0.1),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: kPrimary.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                      ),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: const Icon(
+                      Icons.bedtime,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Sleep Stories',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1C1C1E),
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Peaceful stories to help you drift off',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xFF8E8E93),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: kAccent.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                '25 stories',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF1C1C1E),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: kSecondary.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'Nature sounds',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF1C1C1E),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: kPrimary,
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBreathingExercises() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Breathing Exercises',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1C1C1E),
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildBreathingCard(
+                '4-7-8 Technique',
+                'Calm anxiety',
+                Icons.air,
+                const Color(0xFF4ECDC4),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildBreathingCard(
+                'Box Breathing',
+                'Focus mind',
+                Icons.crop_square,
+                const Color(0xFF45B7D1),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBreathingCard(String title, String subtitle, IconData icon, Color color) {
+    return GestureDetector(
+      onTap: () => HapticFeedback.lightImpact(),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [kSecondary, kPrimary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(0.2),
+                  Colors.white.withOpacity(0.1),
+                ],
               ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: kSecondary.withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AnimatedBuilder(
+                  animation: _breathingAnimation,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _breathingAnimation.value,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          icon,
+                          color: color,
+                          size: 20,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1C1C1E),
+                    letterSpacing: -0.1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF8E8E93),
+                  ),
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.favorite,
-              color: Colors.white,
-              size: 36,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWellnessChallenges() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Wellness Challenges',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1C1C1E),
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.2),
+                    Colors.white.withOpacity(0.1),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: kAccent.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFF6B6B), Color(0xFFFFE66D)],
+                          ),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: const Icon(
+                          Icons.emoji_events,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '30-Day Happiness Challenge',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1C1C1E),
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Build positive habits daily',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                color: Color(0xFF8E8E93),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: kAccent.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Day 7/30',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1C1C1E),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: kAccent.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: FractionallySizedBox(
+                      widthFactor: 0.23, // 7/30 progress
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [kPrimary, kSecondary],
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 20),
-          const Text(
-            'Wellness Center',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1C1C1E),
-              letterSpacing: -0.3,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressContent() {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProgressHeader(),
+                const SizedBox(height: 24),
+                _buildMonthlySummary(),
+                const SizedBox(height: 24),
+                _buildHappinessStreak(),
+                const SizedBox(height: 24),
+                _buildWeeklyOverview(),
+                const SizedBox(height: 24),
+                _buildEmotionDistribution(),
+                const SizedBox(height: 24),
+                _buildStatisticsGrid(),
+                const SizedBox(height: 24),
+                _buildAchievements(),
+                const SizedBox(height: 24),
+                _buildWellnessInsight(),
+                const SizedBox(height: 100), // Bottom padding
+              ],
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Progress Page Components
+  Widget _buildProgressHeader() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.25),
+                Colors.white.withOpacity(0.15),
+                Colors.white.withOpacity(0.10),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: kPrimary.withOpacity(0.1),
+                blurRadius: 30,
+                offset: const Offset(0, 15),
+              ),
+              BoxShadow(
+                color: Colors.white.withOpacity(0.8),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              AnimatedBuilder(
+                animation: _breathingAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _breathingAnimation.value,
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [kPrimary, kSecondary, kAccent],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: kSecondary.withOpacity(0.4),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.trending_up,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your Journey',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1C1C1E),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Every smile counts! 😊',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFF8E8E93),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMonthlySummary() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.2),
+                Colors.white.withOpacity(0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: kPrimary.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'This Month',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1C1C1E),
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: kAccent.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'October 2025',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1C1C1E),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard('Happy Days', '26', Icons.sentiment_very_satisfied, kAccent),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard('Improvement', '+15%', Icons.trending_up, kSecondary),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard('Goals Met', '8/10', Icons.emoji_events, kPrimary),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 24,
           ),
           const SizedBox(height: 8),
           Text(
-            'Your journey to happiness',
+            value,
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: const Color(0xFF8E8E93),
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: color,
+              letterSpacing: -0.2,
             ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF8E8E93),
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProgressContent() {
-    return const Center(
-      child: Text(
-        'Your Progress',
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF1C1C1E),
+  Widget _buildHappinessStreak() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.2),
+                Colors.white.withOpacity(0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: kAccent.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              AnimatedBuilder(
+                animation: _breathingAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _breathingAnimation.value,
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF6B6B), Color(0xFFFFE66D)],
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Text(
+                          '🔥',
+                          style: TextStyle(fontSize: 28),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Happiness Streak',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1C1C1E),
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      '7 Days Strong',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1C1C1E),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Keep turning frowns upside down!',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFF8E8E93),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeeklyOverview() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Weekly Overview',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1C1C1E),
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.2),
+                    Colors.white.withOpacity(0.1),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: kPrimary.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Mood Levels',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1C1C1E),
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: kAccent.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          '5/7 days',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1C1C1E),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 100,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        _buildWeekBar('M', 0.8),
+                        _buildWeekBar('T', 0.6),
+                        _buildWeekBar('W', 0.9),
+                        _buildWeekBar('T', 0.7),
+                        _buildWeekBar('F', 0.85),
+                        _buildWeekBar('S', 0.4),
+                        _buildWeekBar('S', 0.75),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeekBar(String day, double value) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Container(
+          width: 20,
+          height: 60 * value,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: value > 0.6 
+                ? [kPrimary, kSecondary]
+                : [const Color(0xFFB0CFE0), const Color(0xFFD9ECF7)],
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          day,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF8E8E93),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmotionDistribution() {
+    final emotions = [
+      {'name': 'Happy', 'count': 15, 'color': const Color(0xFFFFE66D)},
+      {'name': 'Calm', 'count': 12, 'color': const Color(0xFF4ECDC4)},
+      {'name': 'Stressed', 'count': 8, 'color': const Color(0xFFFF6B6B)},
+      {'name': 'Sad', 'count': 5, 'color': const Color(0xFF95A5A6)},
+      {'name': 'Disappointed', 'count': 3, 'color': const Color(0xFFE74C3C)},
+      {'name': 'Nervous', 'count': 2, 'color': const Color(0xFF9B59B6)},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Emotion Distribution',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1C1C1E),
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.2),
+                    Colors.white.withOpacity(0.1),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: kAccent.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: emotions.map((emotion) {
+                  final percentage = ((emotion['count'] as int) / 45 * 100).round();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: emotion['color'] as Color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            emotion['name'] as String,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF1C1C1E),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Container(
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: (emotion['color'] as Color).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: FractionallySizedBox(
+                              widthFactor: (emotion['count'] as int) / 15,
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: emotion['color'] as Color,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '${emotion['count']} ($percentage%)',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF8E8E93),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatisticsGrid() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Statistics',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1C1C1E),
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatisticCard('Mood Check-ins', '100', Icons.mood, kPrimary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatisticCard('Happy Days', '85%', Icons.sentiment_very_satisfied, kAccent),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatisticCard('Wellness Goals', '12', Icons.flag, kSecondary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatisticCard('Day Streak', '7', Icons.local_fire_department, const Color(0xFFFF6B6B)),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatisticCard(String title, String value, IconData icon, Color color) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.2),
+                Colors.white.withOpacity(0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF8E8E93),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAchievements() {
+    final achievements = [
+      {'title': 'Smile Starter', 'description': 'First 7 happy days', 'unlocked': true, 'icon': Icons.sentiment_very_satisfied},
+      {'title': 'Happiness Hero', 'description': '30 mood check-ins', 'unlocked': true, 'icon': Icons.favorite},
+      {'title': 'Streak Master', 'description': '14 day happiness streak', 'unlocked': false, 'icon': Icons.local_fire_department},
+      {'title': 'Positivity Pro', 'description': '100 uplifting moments', 'unlocked': true, 'icon': Icons.star},
+      {'title': 'Joy Spreader', 'description': 'Share 10 positive vibes', 'unlocked': false, 'icon': Icons.share},
+      {'title': 'Wellness Champion', 'description': 'Complete all wellness tips', 'unlocked': true, 'icon': Icons.emoji_events},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Achievements',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1C1C1E),
+                letterSpacing: -0.3,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: kAccent.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                '4/6 unlocked',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1C1C1E),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
+          ),
+          itemCount: achievements.length,
+          itemBuilder: (context, index) {
+            final achievement = achievements[index];
+            final isUnlocked = achievement['unlocked'] as bool;
+            
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isUnlocked
+                        ? [Colors.white.withOpacity(0.2), Colors.white.withOpacity(0.1)]
+                        : [Colors.white.withOpacity(0.1), Colors.white.withOpacity(0.05)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: isUnlocked 
+                                ? kAccent.withOpacity(0.2)
+                                : const Color(0xFF8E8E93).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              achievement['icon'] as IconData,
+                              color: isUnlocked ? kAccent : const Color(0xFF8E8E93),
+                              size: 16,
+                            ),
+                          ),
+                          if (isUnlocked)
+                            const Icon(
+                              Icons.check_circle,
+                              color: Color(0xFF4CAF50),
+                              size: 16,
+                            ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(
+                        achievement['title'] as String,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isUnlocked ? const Color(0xFF1C1C1E) : const Color(0xFF8E8E93),
+                          letterSpacing: -0.1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        achievement['description'] as String,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400,
+                          color: isUnlocked ? const Color(0xFF8E8E93) : const Color(0xFFBDBDBD),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWellnessInsight() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.2),
+                Colors.white.withOpacity(0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: kPrimary.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFE66D), Color(0xFFFF6B6B)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.lightbulb,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Your Wellness Insight',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1C1C1E),
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Amazing Progress! 🌟',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1C1C1E),
+                  letterSpacing: -0.2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "You've turned frowns upside down 85% of the time this week! Keep focusing on gratitude and mindful breathing to maintain this positive momentum.",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF1C1C1E),
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
