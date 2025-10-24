@@ -6,6 +6,7 @@ import 'support_messages_page.dart';
 import 'login_page.dart';
 import 'profile_page.dart';
 import 'wellness_components.dart';
+import 'wellness_page.dart';
 
 class HomePage extends StatefulWidget {
   final String planType;
@@ -237,7 +238,7 @@ class _HomePageState extends State<HomePage>
       case 0:
         return _buildHomeContent();
       case 1:
-        return _buildMeditationContent();
+        return const WellnessPage();
       case 2:
         return _buildProgressContent();
       case 3:
@@ -266,7 +267,6 @@ class _HomePageState extends State<HomePage>
           {'label': 'Stressed', 'emoji': '😣'},
           {'label': 'Nervous', 'emoji': '😬'},
           {'label': 'Calm', 'emoji': '😌'},
-          {'label': 'Magic', 'emoji': '✨'},
         ];
         final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
         return BackdropFilter(
@@ -278,131 +278,152 @@ class _HomePageState extends State<HomePage>
               child: Center(
                 child: StatefulBuilder(
                   builder: (context, setState) {
-                    final maxH = MediaQuery.of(context).size.height * 0.6;
                     return Material(
                       color: Colors.transparent,
                       child: Dialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxHeight: maxH),
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.all(20),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                             child: Container(
+                              padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Colors.white.withOpacity(0.96),
-                                    Colors.white.withOpacity(0.88),
+                                    Colors.white.withOpacity(0.25),
+                                    Colors.white.withOpacity(0.15),
+                                    Colors.white.withOpacity(0.10),
                                   ],
                                 ),
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF4A6FA5).withOpacity(0.1),
+                                    blurRadius: 60,
+                                    offset: const Offset(0, 30),
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 30,
+                                    offset: const Offset(0, 15),
+                                  ),
+                                ],
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const SizedBox(height: 10),
-                                    Container(
-                                      width: 36,
-                                      height: 4,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF8E8E93).withOpacity(0.3),
-                                        borderRadius: BorderRadius.circular(2),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    // Back button row
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Color(0xFF4A6FA5)),
-                                          onPressed: () {
-                                            Navigator.of(context).pop(null);
-                                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 8),
+                              Container(
+                                width: 40,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF4A6FA5).withOpacity(0.4),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              // Back button row
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Color(0xFF4A6FA5)),
+                                    onPressed: () {
+                                      Navigator.of(context).pop(null);
+                                    },
+                                  ),
+                                  const Spacer(),
+                                ],
+                              ),
+                              AnimatedBuilder(
+                                animation: _breathingController,
+                                builder: (context, _) {
+                                  final v = _breathingController.value; // 0..1
+                                  final scale = 0.98 + (v * 0.04);      // 0.98..1.02
+                                  final dy = (v - 0.5) * 8;              // -4..+4 px
+                                  final glow = 0.15 + (v * 0.25);        // 0.15..0.40
+                                  return Transform.translate(
+                                    offset: Offset(0, dy),
+                                    child: Transform.scale(
+                                      scale: scale,
+                                      child: Container(
+                                        width: 80,
+                                        height: 80,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: const LinearGradient(
+                                            colors: [Color(0xFF4A6FA5), Color(0xFF5B7DB1)],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(0xFF4A6FA5).withOpacity(glow),
+                                              blurRadius: 20,
+                                              spreadRadius: 1,
+                                            ),
+                                            BoxShadow(
+                                              color: const Color(0xFF4A6FA5).withOpacity(0.1),
+                                              blurRadius: 40,
+                                              spreadRadius: 0,
+                                            ),
+                                          ],
                                         ),
-                                        const Spacer(),
-                                      ],
-                                    ),
-                                    AnimatedBuilder(
-                                      animation: _breathingController,
-                                      builder: (context, _) {
-                                        final v = _breathingController.value; // 0..1
-                                        final scale = 0.98 + (v * 0.04);      // 0.98..1.02
-                                        final dy = (v - 0.5) * 8;              // -4..+4 px
-                                        final glow = 0.15 + (v * 0.25);        // 0.15..0.40
-                                        return Transform.translate(
-                                          offset: Offset(0, dy),
-                                          child: Transform.scale(
-                                            scale: scale,
-                                            child: Container(
-                                              width: 88,
-                                              height: 88,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                gradient: const LinearGradient(
-                                                  colors: [Color(0xFF4A6FA5), Color(0xFF5B7DB1)],
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: const Color(0xFF4A6FA5).withOpacity(glow),
-                                                    blurRadius: 24,
-                                                    spreadRadius: 2,
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Center(
-                                                child: AnimatedSwitcher(
-                                                  duration: const Duration(milliseconds: 200),
-                                                  transitionBuilder: (child, anim) =>
-                                                      ScaleTransition(scale: anim, child: child),
-                                                  child: Text(
-                                                    selected.isEmpty
-                                                        ? '🙂'
-                                                        : options.firstWhere((e) => e['label'] == selected)['emoji'] as String,
-                                                    key: ValueKey<String>(selected.isEmpty ? 'neutral' : selected),
-                                                    style: const TextStyle(fontSize: 40, color: Colors.white),
-                                                  ),
-                                                ),
-                                              ),
+                                        child: Center(
+                                          child: AnimatedSwitcher(
+                                            duration: const Duration(milliseconds: 200),
+                                            transitionBuilder: (child, anim) =>
+                                                ScaleTransition(scale: anim, child: child),
+                                            child: Text(
+                                              selected.isEmpty
+                                                  ? '🙂'
+                                                  : options.firstWhere((e) => e['label'] == selected)['emoji'] as String,
+                                              key: ValueKey<String>(selected.isEmpty ? 'neutral' : selected),
+                                              style: const TextStyle(fontSize: 40, color: Colors.white),
                                             ),
                                           ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 14),
-                                    const Text(
-                                      'How are you feeling today?',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF1C1C1E),
-                                        letterSpacing: -0.2,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      'Select one to continue',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w400,
-                                        color: const Color(0xFF8E8E93),
-                                        letterSpacing: -0.1,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Builder(
-                                      builder: (context) {
-                                        final size = MediaQuery.of(context).size;
-                                        final useAltDesign = size.width < 360; // circular chips on very narrow screens
-                                        return Wrap(
-                                          alignment: WrapAlignment.center,
-                                          spacing: 10,
-                                          runSpacing: 10,
-                                          children: options.asMap().entries.map((entry) {
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 14),
+                              const Text(
+                                'How are you feeling today?',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1C1C1E),
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Select one to continue',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFF8E8E93),
+                                  letterSpacing: -0.1,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Builder(
+                                builder: (context) {
+                                  final size = MediaQuery.of(context).size;
+                                  final useAltDesign = size.width < 360; // circular chips on very narrow screens
+                                  return Wrap(
+                                    alignment: WrapAlignment.center,
+                                    spacing: 10,
+                                    runSpacing: 10,
+                                    children: options.asMap().entries.map((entry) {
                                             final index = entry.key;
                                             final opt = entry.value;
                                             final isSelected = selected == opt['label'];
@@ -535,10 +556,71 @@ class _HomePageState extends State<HomePage>
                                         );
                                       },
                                     ),
-                                    const SizedBox(height: 20),
-                                  ],
-                                ),
-                              ),
+                                    const SizedBox(height: 16),
+                                    // Magic Button
+                                    GestureDetector(
+                                      onTap: () async {
+                                        // Open nested emotion dialog for Magic
+                                        Future.delayed(const Duration(milliseconds: 150), () async {
+                                          Navigator.of(context).pop();
+                                          await _openNestedEmotionDialog();
+                                        });
+                                      },
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              Colors.purple.shade400,
+                                              Colors.pink.shade400,
+                                              Colors.orange.shade400,
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(0.2),
+                                            width: 1,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.purple.shade300.withOpacity(0.4),
+                                              blurRadius: 24,
+                                              offset: const Offset(0, 8),
+                                            ),
+                                            BoxShadow(
+                                              color: Colors.pink.shade300.withOpacity(0.2),
+                                              blurRadius: 12,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              '✨',
+                                              style: const TextStyle(fontSize: 24),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              'Magic',
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white,
+                                                letterSpacing: -0.2,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                            ],
+                          ),
                             ),
                           ),
                         ),
@@ -864,57 +946,66 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildHomeContent() {
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Get screen dimensions for responsive design
+        final screenHeight = MediaQuery.of(context).size.height;
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isSmallScreen = screenHeight < 700 || screenWidth < 360;
+        
+        // Adjust spacing based on screen size
+        final cardSpacing = isSmallScreen ? 12.0 : 16.0;
+        final sectionSpacing = isSmallScreen ? 16.0 : 20.0;
+        final horizontalPadding = isSmallScreen ? 12.0 : 16.0;
+        
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              0,
+              horizontalPadding,
+              100, // Bottom padding for navigation bar
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Daily Inspiration
                 _buildWelcomeHeader(),
-                const SizedBox(height: 20),
+                SizedBox(height: sectionSpacing),
                 
                 // Daily Emotion Status
                 _buildDailyEmotionStatus(),
-                const SizedBox(height: 20),
+                SizedBox(height: sectionSpacing),
                 
                 // Mood Improvement Streak
                 _buildStreakCard(),
-                const SizedBox(height: 20),
+                SizedBox(height: sectionSpacing),
                 
                 // Quick Actions for Mood Improvement
                 _buildQuickActions(),
-                const SizedBox(height: 24),
+                SizedBox(height: cardSpacing + 8),
                 
                 // Emotional Wellness Tips
                 _buildWellnessTips(),
-                const SizedBox(height: 20),
+                SizedBox(height: sectionSpacing),
                 
-                // Content Categories
-                _buildContentCategories(),
-                const SizedBox(height: 20),
+                // Wellness Content Button
+                _buildWellnessContentButton(),
+                
+                // Extra bottom spacing for safe area
+                SizedBox(height: isSmallScreen ? 20 : 40),
               ],
             ),
           ),
-        ),
-        
-        // Content Feed
-        _buildContentFeed(),
-        
-        // Bottom spacing
-        const SliverToBoxAdapter(
-          child: SizedBox(height: 100),
-        ),
-      ],
+        );
+      },
     );
   }
 
   // State variables for content
   String _selectedEmotion = 'Happy';
   String _selectedEmoji = '😀';
-  String _selectedCategory = 'All';
   
   Widget _buildDailyEmotionStatus() {
     return ClipRRect(
@@ -1220,729 +1311,135 @@ class _HomePageState extends State<HomePage>
       },
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Wellness Tips',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1C1C1E),
-            letterSpacing: -0.3,
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 150,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: tips.length,
-            itemBuilder: (context, index) {
-              final tip = tips[index];
-              return Padding(
-                padding: EdgeInsets.only(right: index == tips.length - 1 ? 0 : 12),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                    child: Container(
-                      width: 180,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.25),
-                            Colors.white.withOpacity(0.15),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: kPrimary.withOpacity(0.12),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(
-                              color: (tip['color'] as Color).withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              tip['icon'] as IconData,
-                              color: tip['color'] as Color,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Flexible(
-                            child: Text(
-                              tip['title'] as String,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF1C1C1E),
-                                letterSpacing: -0.2,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Flexible(
-                            child: Text(
-                              tip['description'] as String,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xFF8E8E93),
-                                letterSpacing: -0.1,
-                                height: 1.3,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildContentCategories() {
-    final categories = [
-      {'name': 'All', 'icon': Icons.apps, 'count': '12'},
-      {'name': 'Happiness', 'icon': Icons.sentiment_very_satisfied, 'count': '4'},
-      {'name': 'Motivation', 'icon': Icons.emoji_events, 'count': '3'},
-      {'name': 'Relaxation', 'icon': Icons.spa, 'count': '2'},
-      {'name': 'Positivity', 'icon': Icons.wb_sunny, 'count': '3'},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Browse Content',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1C1C1E),
-            letterSpacing: -0.3,
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 80,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              final isSelected = _selectedCategory == category['name'];
-              
-              return Padding(
-                padding: EdgeInsets.only(right: index == categories.length - 1 ? 0 : 12),
-                child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    setState(() {
-                      _selectedCategory = category['name'] as String;
-                    });
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 70,
-                    decoration: BoxDecoration(
-                      gradient: isSelected
-                          ? LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [kSecondary, kPrimary],
-                            )
-                          : LinearGradient(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isSmallScreen = screenWidth < 360;
+        
+        // Responsive dimensions
+        final cardHeight = isSmallScreen ? 130.0 : 150.0;
+        final cardWidth = isSmallScreen ? 160.0 : 180.0;
+        final cardPadding = isSmallScreen ? 14.0 : 16.0;
+        final iconSize = isSmallScreen ? 36.0 : 42.0;
+        final iconInnerSize = isSmallScreen ? 20.0 : 22.0;
+        final titleFontSize = isSmallScreen ? 13.0 : 14.0;
+        final descriptionFontSize = isSmallScreen ? 11.0 : 12.0;
+        final headerFontSize = isSmallScreen ? 16.0 : 18.0;
+        final spacingBetween = isSmallScreen ? 10.0 : 12.0;
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Wellness Tips',
+              style: TextStyle(
+                fontSize: headerFontSize,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1C1C1E),
+                letterSpacing: -0.3,
+              ),
+            ),
+            SizedBox(height: spacingBetween),
+            SizedBox(
+              height: cardHeight,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: tips.length,
+                itemBuilder: (context, index) {
+                  final tip = tips[index];
+                  return Padding(
+                    padding: EdgeInsets.only(right: index == tips.length - 1 ? 0 : spacingBetween),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                        child: Container(
+                          width: cardWidth,
+                          padding: EdgeInsets.all(cardPadding),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                Colors.white.withOpacity(0.3),
-                                Colors.white.withOpacity(0.2),
+                                Colors.white.withOpacity(0.25),
+                                Colors.white.withOpacity(0.15),
                               ],
                             ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isSelected ? Colors.transparent : Colors.white.withOpacity(0.4),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isSelected 
-                              ? kSecondary.withOpacity(0.4)
-                              : Colors.black.withOpacity(0.08),
-                          blurRadius: isSelected ? 15 : 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          category['icon'] as IconData,
-                          color: isSelected ? Colors.white : kPrimary,
-                          size: 24,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          category['name'] as String,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: isSelected ? Colors.white : kPrimary,
-                            letterSpacing: -0.1,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          category['count'] as String,
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w400,
-                            color: isSelected 
-                                ? Colors.white.withOpacity(0.8)
-                                : const Color(0xFF8E8E93),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildContentFeed() {
-    final contentItems = [
-      {
-        'type': 'video',
-        'title': 'Morning Happiness Routine',
-        'subtitle': 'Start your day with a smile - 5 simple steps',
-        'duration': '8 min',
-        'author': 'Emma Wilson',
-        'likes': '3.2k',
-        'category': 'Happiness',
-      },
-      {
-        'type': 'audio',
-        'title': 'Uplifting Music Mix',
-        'subtitle': 'Feel-good tunes to brighten your spirit',
-        'duration': '30 min',
-        'author': 'Joy Sounds',
-        'likes': '6.8k',
-        'category': 'Happiness',
-      },
-      {
-        'type': 'image',
-        'title': 'Gratitude Journal Guide',
-        'subtitle': 'Transform negative thoughts into positive ones',
-        'duration': '5 min read',
-        'author': 'Dr. Lisa Park',
-        'likes': '2.1k',
-        'category': 'Positivity',
-      },
-      {
-        'type': 'video',
-        'title': 'Laughter Yoga Session',
-        'subtitle': 'Fun activities to make you laugh and smile',
-        'duration': '12 min',
-        'author': 'Happy Hearts',
-        'likes': '4.5k',
-        'category': 'Happiness',
-      },
-      {
-        'type': 'audio',
-        'title': 'Overcoming Sadness',
-        'subtitle': 'Inspiring stories of resilience and hope',
-        'duration': '20 min',
-        'author': 'Hope Talks',
-        'likes': '5.3k',
-        'category': 'Motivation',
-      },
-      {
-        'type': 'image',
-        'title': 'Daily Affirmations',
-        'subtitle': 'Powerful mantras to boost your confidence',
-        'duration': '3 min read',
-        'author': 'Mindful Joy',
-        'likes': '3.9k',
-        'category': 'Positivity',
-      },
-      {
-        'type': 'video',
-        'title': 'Nature Sounds Therapy',
-        'subtitle': 'Peaceful outdoor scenes for instant calm',
-        'duration': '15 min',
-        'author': 'Nature Heals',
-        'likes': '4.1k',
-        'category': 'Relaxation',
-      },
-      {
-        'type': 'audio',
-        'title': 'Comedy Hour',
-        'subtitle': 'Hilarious clips to turn frowns upside down',
-        'duration': '25 min',
-        'author': 'Laugh More',
-        'likes': '7.2k',
-        'category': 'Happiness',
-      },
-      {
-        'type': 'video',
-        'title': 'Self-Love Practice',
-        'subtitle': 'Learn to appreciate yourself more each day',
-        'duration': '10 min',
-        'author': 'Love Yourself',
-        'likes': '5.7k',
-        'category': 'Positivity',
-      },
-      {
-        'type': 'image',
-        'title': 'Mood Tracking Tips',
-        'subtitle': 'Understand your emotions better',
-        'duration': '4 min read',
-        'author': 'Wellness Guide',
-        'likes': '2.8k',
-        'category': 'Motivation',
-      },
-      {
-        'type': 'audio',
-        'title': 'Calming Rain Sounds',
-        'subtitle': 'Soothing sounds for stress relief',
-        'duration': '45 min',
-        'author': 'Peace Sounds',
-        'likes': '8.1k',
-        'category': 'Relaxation',
-      },
-      {
-        'type': 'video',
-        'title': 'Building Resilience',
-        'subtitle': 'Bounce back stronger from challenges',
-        'duration': '18 min',
-        'author': 'Strong Mind',
-        'likes': '4.9k',
-        'category': 'Motivation',
-      },
-    ];
-
-    // Filter content based on selected category
-    final filteredContent = _selectedCategory == 'All' 
-        ? contentItems 
-        : contentItems.where((item) => item['category'] == _selectedCategory).toList();
-
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final item = filteredContent[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _buildContentCard(item),
-            );
-          },
-          childCount: filteredContent.length,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContentCard(Map<String, dynamic> item) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withOpacity(0.25),
-                Colors.white.withOpacity(0.15),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.3),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: kPrimary.withOpacity(0.12),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
-              ),
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 60,
-                offset: const Offset(0, 20),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(24),
-              onTap: () {
-                HapticFeedback.lightImpact();
-                // Handle content tap
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Content Header
-                Row(
-                  children: [
-                    _buildContentTypeIcon(item['type'] as String),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item['title'] as String,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1C1C1E),
-                              letterSpacing: -0.2,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 1,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: kPrimary.withOpacity(0.12),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            item['subtitle'] as String,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xFF8E8E93),
-                              letterSpacing: -0.1,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: iconSize,
+                                height: iconSize,
+                                decoration: BoxDecoration(
+                                  color: (tip['color'] as Color).withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  tip['icon'] as IconData,
+                                  color: tip['color'] as Color,
+                                  size: iconInnerSize,
+                                ),
+                              ),
+                              SizedBox(height: spacingBetween),
+                              Flexible(
+                                child: Text(
+                                  tip['title'] as String,
+                                  style: TextStyle(
+                                    fontSize: titleFontSize,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF1C1C1E),
+                                    letterSpacing: -0.2,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Flexible(
+                                child: Text(
+                                  tip['description'] as String,
+                                  style: TextStyle(
+                                    fontSize: descriptionFontSize,
+                                    fontWeight: FontWeight.w400,
+                                    color: const Color(0xFF8E8E93),
+                                    letterSpacing: -0.1,
+                                    height: 1.3,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                    _buildContentActions(),
-                  ],
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // Content Preview/Thumbnail
-                _buildContentPreview(item),
-                
-                const SizedBox(height: 16),
-                
-                // Content Footer
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 12,
-                      backgroundColor: kPrimary.withOpacity(0.1),
-                      child: Text(
-                        (item['author'] as String)[0],
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: kPrimary,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      item['author'] as String,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF1C1C1E),
-                      ),
-                    ),
-                    const Spacer(),
-                    Icon(
-                      Icons.access_time,
-                      size: 14,
-                      color: const Color(0xFF8E8E93),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      item['duration'] as String,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFF8E8E93),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Icon(
-                      Icons.favorite_outline,
-                      size: 14,
-                      color: const Color(0xFF8E8E93),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      item['likes'] as String,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFF8E8E93),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContentTypeIcon(String type) {
-    IconData icon;
-    List<Color> gradientColors;
-    
-    switch (type) {
-      case 'video':
-        icon = Icons.play_circle_filled;
-        gradientColors = [kSecondary, kPrimary];
-        break;
-      case 'audio':
-        icon = Icons.headphones;
-        gradientColors = [kPrimary, kAccent];
-        break;
-      case 'image':
-        icon = Icons.article;
-        gradientColors = [kAccent, kPrimary];
-        break;
-      default:
-        icon = Icons.circle;
-        gradientColors = [kPrimary, kSecondary];
-    }
-    
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradientColors,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: gradientColors[0].withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Icon(
-        icon,
-        color: Colors.white,
-        size: 20,
-      ),
-    );
-  }
-
-  Widget _buildContentActions() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            // Handle bookmark
-          },
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.4),
-                width: 1,
+                  );
+                },
               ),
             ),
-            child: Icon(
-              Icons.bookmark_outline,
-              size: 16,
-              color: kPrimary,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            // Handle share
-          },
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.4),
-                width: 1,
-              ),
-            ),
-            child: Icon(
-              Icons.share_outlined,
-              size: 16,
-              color: kPrimary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildContentPreview(Map<String, dynamic> item) {
-    final type = item['type'] as String;
-    
-    return Container(
-      height: 180,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withOpacity(0.2),
-            Colors.white.withOpacity(0.1),
           ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Stack(
-        children: [
-          // Background pattern or placeholder
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: type == 'video'
-                          ? [kSecondary, kPrimary]
-                          : type == 'audio'
-                              ? [kPrimary, kAccent]
-                              : [kAccent, kPrimary],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: kPrimary.withOpacity(0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    type == 'video' 
-                        ? Icons.play_arrow
-                        : type == 'audio'
-                            ? Icons.volume_up
-                            : Icons.image,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  type == 'video' 
-                      ? 'Video Content'
-                      : type == 'audio'
-                          ? 'Audio Content'
-                          : 'Visual Guide',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: kPrimary,
-                    letterSpacing: -0.1,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // Play button overlay for video/audio
-          if (type == 'video' || type == 'audio')
-            Positioned(
-              bottom: 12,
-              right: 12,
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [kSecondary, kPrimary],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: kSecondary.withOpacity(0.4),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  type == 'video' ? Icons.play_arrow : Icons.headphones,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
+
 
   Widget _buildWelcomeHeader() {
     // Daily inspirational quotes
@@ -2159,126 +1656,283 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildQuickActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Quick Mood Boosters',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF1C1C1E),
-            letterSpacing: -0.3,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isSmallScreen = screenWidth < 360;
+        
+        // Responsive dimensions
+        final headerFontSize = isSmallScreen ? 16.0 : 18.0;
+        final spacingBetween = isSmallScreen ? 8.0 : 12.0;
+        final spacingVertical = isSmallScreen ? 10.0 : 12.0;
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: _buildActionCard(
-                'Smile',
-                'Turn it around',
-                Icons.sentiment_very_satisfied,
-                LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [kSecondary, kPrimary],
-                ),
+            Text(
+              'Quick Mood Boosters',
+              style: TextStyle(
+                fontSize: headerFontSize,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1C1C1E),
+                letterSpacing: -0.3,
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildActionCard(
-                'Laugh',
-                'Feel better',
-                Icons.emoji_emotions,
-                LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [kPrimary, kAccent],
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildActionCard(
-                'Relax',
-                'Find peace',
-                Icons.spa,
-                LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [kAccent, kPrimary],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionCard(String title, String subtitle, IconData icon, LinearGradient gradient) {
-    return Container(
-      height: 120,
-      decoration: BoxDecoration(
-        gradient: gradient,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: gradient.colors.first.withOpacity(0.28),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            HapticFeedback.lightImpact();
-            // Handle action
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            SizedBox(height: spacingVertical),
+            Row(
               children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.22),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 18),
-                ),
-                const Spacer(),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    letterSpacing: -0.2,
+                Expanded(
+                  child: _buildActionCard(
+                    'Smile',
+                    'Turn it around',
+                    Icons.sentiment_very_satisfied,
+                    LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [kSecondary, kPrimary],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white.withOpacity(0.8),
-                    letterSpacing: -0.1,
+                SizedBox(width: spacingBetween),
+                Expanded(
+                  child: _buildActionCard(
+                    'Laugh',
+                    'Feel better',
+                    Icons.emoji_emotions,
+                    LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [kPrimary, kAccent],
+                    ),
+                  ),
+                ),
+                SizedBox(width: spacingBetween),
+                Expanded(
+                  child: _buildActionCard(
+                    'Relax',
+                    'Find peace',
+                    Icons.spa,
+                    LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [kAccent, kPrimary],
+                    ),
                   ),
                 ),
               ],
             ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildActionCard(String title, String subtitle, IconData icon, LinearGradient gradient) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isSmallScreen = screenWidth < 360;
+        
+        // Responsive dimensions
+        final cardHeight = isSmallScreen ? 100.0 : 120.0;
+        final iconSize = isSmallScreen ? 28.0 : 32.0;
+        final iconInnerSize = isSmallScreen ? 16.0 : 18.0;
+        final titleFontSize = isSmallScreen ? 12.0 : 14.0;
+        final subtitleFontSize = isSmallScreen ? 10.0 : 11.0;
+        final padding = isSmallScreen ? 12.0 : 16.0;
+        
+        return Container(
+          height: cardHeight,
+          decoration: BoxDecoration(
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: gradient.colors.first.withOpacity(0.28),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-        ),
-      ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                // Handle action
+              },
+              child: Padding(
+                padding: EdgeInsets.all(padding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: iconSize,
+                      height: iconSize,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.22),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, color: Colors.white, size: iconInnerSize),
+                    ),
+                    const Spacer(),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: titleFontSize,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: subtitleFontSize,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white.withOpacity(0.8),
+                        letterSpacing: -0.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildWellnessContentButton() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isSmallScreen = screenWidth < 360;
+        
+        // Responsive dimensions
+        final padding = isSmallScreen ? 16.0 : 20.0;
+        final iconSize = isSmallScreen ? 40.0 : 50.0;
+        final iconInnerSize = isSmallScreen ? 22.0 : 26.0;
+        final titleFontSize = isSmallScreen ? 14.0 : 16.0;
+        final subtitleFontSize = isSmallScreen ? 11.0 : 13.0;
+        final spacingWidth = isSmallScreen ? 12.0 : 16.0;
+        final arrowSize = isSmallScreen ? 16.0 : 18.0;
+        
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.25),
+                    Colors.white.withOpacity(0.15),
+                    Colors.white.withOpacity(0.10),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: kPrimary.withOpacity(0.15),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 60,
+                    offset: const Offset(0, 20),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(24),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() {
+                      _selectedIndex = 1; // Navigate to wellness page
+                    });
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(padding),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: iconSize,
+                          height: iconSize,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [kSecondary, kPrimary],
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: kPrimary.withOpacity(0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.spa,
+                            color: Colors.white,
+                            size: iconInnerSize,
+                          ),
+                        ),
+                        SizedBox(width: spacingWidth),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Wellness Content',
+                                style: TextStyle(
+                                  fontSize: titleFontSize,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF1C1C1E),
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Videos, Audio & Guides for Your Journey',
+                                style: TextStyle(
+                                  fontSize: subtitleFontSize,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFF8E8E93),
+                                  letterSpacing: -0.1,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: kPrimary,
+                          size: arrowSize,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
