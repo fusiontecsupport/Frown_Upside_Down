@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'home_page.dart';
 
 class SupportMessagesPage extends StatefulWidget {
   final String title;
@@ -93,6 +94,315 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
     } else {
       setState(() => _showExplore = true);
     }
+  }
+
+  Future<String?> _showFollowUpDialog() async {
+    return showGeneralDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: 'Follow Up Emotion',
+      barrierColor: Colors.black.withOpacity(0.3),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return const SizedBox.shrink();
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        String selected = '';
+        final followUpOptions = [
+          {'label': 'Still feeling sad', 'emoji': '😢', 'description': 'My sadness hasn\'t changed'},
+          {'label': 'Slightly better', 'emoji': '🔄', 'description': 'I\'m feeling a bit improved'},
+          {'label': 'Much better now', 'emoji': '😊', 'description': 'I\'m feeling more positive'},
+          {'label': 'Motivated to change', 'emoji': '💪', 'description': 'Ready to take action'},
+          {'label': 'Hopeful', 'emoji': '🌟', 'description': 'I see light ahead'},
+          {'label': 'Grateful for support', 'emoji': '🙏', 'description': 'Thankful for the help'},
+        ];
+        
+        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+        final themeBlue = const Color(0xFF4A6FA5);
+        final themeBlue2 = const Color(0xFF5B7DB1);
+        
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
+          child: Opacity(
+            opacity: curved.value,
+            child: Transform.scale(
+              scale: 0.94 + 0.06 * curved.value,
+              child: Center(
+                child: StatefulBuilder(
+                  builder: (context, setState) {
+                    return Material(
+                      color: Colors.transparent,
+                      child: Dialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: MediaQuery.of(context).size.height * 0.7,
+                            maxWidth: MediaQuery.of(context).size.width * 0.9,
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                              child: SingleChildScrollView(
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.white.withOpacity(0.25),
+                                        Colors.white.withOpacity(0.15),
+                                        Colors.white.withOpacity(0.10),
+                                      ],
+                                    ),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: themeBlue.withOpacity(0.1),
+                                    blurRadius: 60,
+                                    offset: const Offset(0, 30),
+                                  ),
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 30,
+                                    offset: const Offset(0, 15),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    width: 40,
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      color: themeBlue.withOpacity(0.4),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  
+                                  // Emotion icon
+                                  Container(
+                                    width: 60,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: [themeBlue2, themeBlue],
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: themeBlue.withOpacity(0.3),
+                                          blurRadius: 20,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Center(
+                                      child: Text(
+                                        '😢',
+                                        style: TextStyle(fontSize: 28),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  
+                                  Text(
+                                    'How are you feeling now?',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF1C1C1E),
+                                      letterSpacing: -0.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'After reading all the messages, how has your mood changed?',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w400,
+                                      color: const Color(0xFF8E8E93),
+                                      letterSpacing: -0.1,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  
+                                  // Follow-up options
+                                  Column(
+                                    children: followUpOptions.asMap().entries.map((entry) {
+                                      final index = entry.key;
+                                      final option = entry.value;
+                                      final isSelected = selected == option['label'];
+                                      
+                                      // Staggered entrance animation
+                                      final base = (curved.value - index * 0.05).clamp(0.0, 1.0);
+                                      final dy = (1.0 - base) * 8.0;
+                                      
+                                      return Opacity(
+                                        opacity: base,
+                                        child: Transform.translate(
+                                          offset: Offset(0, dy),
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(bottom: 6),
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                HapticFeedback.lightImpact();
+                                                setState(() => selected = option['label'] as String);
+                                                Future.delayed(const Duration(milliseconds: 150), () {
+                                                  Navigator.of(context).pop(option['label']);
+                                                });
+                                              },
+                                              child: AnimatedScale(
+                                                duration: const Duration(milliseconds: 140),
+                                                scale: isSelected ? 1.02 : 1.0,
+                                                child: Container(
+                                                  width: double.infinity,
+                                                  padding: const EdgeInsets.all(12),
+                                                  decoration: BoxDecoration(
+                                                    gradient: isSelected
+                                                        ? LinearGradient(
+                                                            colors: [themeBlue2, themeBlue],
+                                                          )
+                                                        : LinearGradient(
+                                                            colors: [
+                                                              Colors.white.withOpacity(0.3),
+                                                              Colors.white.withOpacity(0.2),
+                                                            ],
+                                                          ),
+                                                    borderRadius: BorderRadius.circular(16),
+                                                    border: Border.all(
+                                                      color: isSelected 
+                                                          ? Colors.transparent 
+                                                          : Colors.white.withOpacity(0.4),
+                                                      width: 1,
+                                                    ),
+                                                    boxShadow: isSelected
+                                                        ? [
+                                                            BoxShadow(
+                                                              color: themeBlue2.withOpacity(0.3),
+                                                              blurRadius: 12,
+                                                              offset: const Offset(0, 6),
+                                                            ),
+                                                          ]
+                                                        : null,
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      Container(
+                                                        width: 40,
+                                                        height: 40,
+                                                        decoration: BoxDecoration(
+                                                          color: isSelected
+                                                              ? Colors.white.withOpacity(0.2)
+                                                              : themeBlue.withOpacity(0.1),
+                                                          borderRadius: BorderRadius.circular(12),
+                                                        ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            option['emoji'] as String,
+                                                            style: const TextStyle(fontSize: 20),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 12),
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Text(
+                                                              option['label'] as String,
+                                                              style: TextStyle(
+                                                                fontSize: 14,
+                                                                fontWeight: FontWeight.w600,
+                                                                color: isSelected 
+                                                                    ? Colors.white 
+                                                                    : const Color(0xFF1C1C1E),
+                                                                letterSpacing: -0.1,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(height: 2),
+                                                            Text(
+                                                              option['description'] as String,
+                                                              style: TextStyle(
+                                                                fontSize: 11,
+                                                                fontWeight: FontWeight.w400,
+                                                                color: isSelected 
+                                                                    ? Colors.white.withOpacity(0.8)
+                                                                    : const Color(0xFF8E8E93),
+                                                                letterSpacing: -0.1,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                  
+                                  const SizedBox(height: 16),
+                                  
+                                  // Skip button
+                                  GestureDetector(
+                                    onTap: () {
+                                      HapticFeedback.lightImpact();
+                                      Navigator.of(context).pop('skip');
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.3),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Skip for now',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: themeBlue,
+                                          letterSpacing: -0.1,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -319,9 +629,13 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
                                   ),
                                   elevation: 6,
                                 ),
-                                onPressed: () {
+                                onPressed: () async {
                                   HapticFeedback.mediumImpact();
-                                  Navigator.of(context).pop();
+                                  // Show follow-up dialog before going back
+                                  final response = await _showFollowUpDialog();
+                                  if (response != null && mounted) {
+                                    Navigator.of(context).pop();
+                                  }
                                 },
                                 child: const Text(
                                   'Explore',
@@ -508,6 +822,342 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
   }
 }
 
+class _SkipAndFeelButton extends StatelessWidget {
+  const _SkipAndFeelButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeBlue = const Color(0xFF4A6FA5);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: themeBlue,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            elevation: 4,
+          ),
+          onPressed: () async {
+            final result = await _showFeelingsDialog(context);
+            // Optionally handle the result here
+          },
+          child: const Text(
+            'Feel Better',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Future<String?> _showFeelingsDialog(BuildContext context) async {
+  return showGeneralDialog<String>(
+    context: context,
+    barrierDismissible: false,
+    barrierLabel: 'How are you feeling?',
+    barrierColor: Colors.black.withOpacity(0.3),
+    transitionDuration: const Duration(milliseconds: 220),
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return const SizedBox.shrink();
+    },
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      String selected = '';
+      final followUpOptions = [
+        {'label': 'Still feeling bad', 'emoji': '😢', 'description': 'My mood hasn\'t improved'},
+        {'label': 'Slightly better', 'emoji': '🔄', 'description': 'I\'m feeling a bit improved'},
+        {'label': 'Much better now', 'emoji': '😊', 'description': 'I\'m feeling more positive'},
+        {'label': 'Motivated to change', 'emoji': '💪', 'description': 'Ready to take action'},
+        {'label': 'Hopeful', 'emoji': '🌟', 'description': 'I see light ahead'},
+        {'label': 'Grateful for support', 'emoji': '🙏', 'description': 'Thankful for the help'},
+      ];
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+      final themeBlue = const Color(0xFF4A6FA5);
+      final themeBlue2 = const Color(0xFF5B7DB1);
+      return BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
+        child: Opacity(
+          opacity: curved.value,
+          child: Transform.scale(
+            scale: 0.94 + 0.06 * curved.value,
+            child: Center(
+              child: StatefulBuilder(
+                builder: (context, setState) {
+                  return Material(
+                    color: Colors.transparent,
+                    child: Dialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.7,
+                          maxWidth: MediaQuery.of(context).size.width * 0.9,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                            child: SingleChildScrollView(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.white.withOpacity(0.25),
+                                      Colors.white.withOpacity(0.15),
+                                      Colors.white.withOpacity(0.10),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: themeBlue.withOpacity(0.1),
+                                      blurRadius: 60,
+                                      offset: const Offset(0, 30),
+                                    ),
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 30,
+                                      offset: const Offset(0, 15),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      width: 40,
+                                      height: 4,
+                                      decoration: BoxDecoration(
+                                        color: themeBlue.withOpacity(0.4),
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Container(
+                                      width: 60,
+                                      height: 60,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          colors: [themeBlue2, themeBlue],
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: themeBlue.withOpacity(0.3),
+                                            blurRadius: 20,
+                                            spreadRadius: 1,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Center(
+                                        child: Text(
+                                          '😢',
+                                          style: TextStyle(fontSize: 28),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'How are you feeling now?',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF1C1C1E),
+                                        letterSpacing: -0.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'After reading this message, how has your mood changed?',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w400,
+                                        color: const Color(0xFF8E8E93),
+                                        letterSpacing: -0.1,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Column(
+                                      children: followUpOptions.asMap().entries.map((entry) {
+                                        final index = entry.key;
+                                        final option = entry.value;
+                                        final isSelected = selected == option['label'];
+                                        final base = (curved.value - index * 0.05).clamp(0.0, 1.0);
+                                        final dy = (1.0 - base) * 8.0;
+                                        return Opacity(
+                                          opacity: base,
+                                          child: Transform.translate(
+                                            offset: Offset(0, dy),
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(bottom: 6),
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  HapticFeedback.lightImpact();
+                                                  setState(() => selected = option['label'] as String);
+                                                  Future.delayed(const Duration(milliseconds: 150), () {
+                                                    Navigator.of(context).pop(option['label']);
+                                                    Navigator.of(context).pop(); // Go back to previous page
+                                                  });
+                                                },
+                                                child: AnimatedScale(
+                                                  duration: const Duration(milliseconds: 140),
+                                                  scale: isSelected ? 1.02 : 1.0,
+                                                  child: Container(
+                                                    width: double.infinity,
+                                                    padding: const EdgeInsets.all(12),
+                                                    decoration: BoxDecoration(
+                                                      gradient: isSelected
+                                                          ? LinearGradient(
+                                                              colors: [themeBlue2, themeBlue],
+                                                            )
+                                                          : LinearGradient(
+                                                              colors: [
+                                                                Colors.white.withOpacity(0.3),
+                                                                Colors.white.withOpacity(0.2),
+                                                              ],
+                                                            ),
+                                                      borderRadius: BorderRadius.circular(16),
+                                                      border: Border.all(
+                                                        color: isSelected 
+                                                            ? Colors.transparent 
+                                                            : Colors.white.withOpacity(0.4),
+                                                        width: 1,
+                                                      ),
+                                                      boxShadow: isSelected
+                                                          ? [
+                                                              BoxShadow(
+                                                                color: themeBlue2.withOpacity(0.3),
+                                                                blurRadius: 12,
+                                                                offset: const Offset(0, 6),
+                                                              ),
+                                                            ]
+                                                          : null,
+                                                    ),
+                                                    child: Row(
+                                                      children: [
+                                                        Container(
+                                                          width: 40,
+                                                          height: 40,
+                                                          decoration: BoxDecoration(
+                                                            color: isSelected
+                                                                ? Colors.white.withOpacity(0.2)
+                                                                : themeBlue.withOpacity(0.1),
+                                                            borderRadius: BorderRadius.circular(12),
+                                                          ),
+                                                          child: Center(
+                                                            child: Text(
+                                                              option['emoji'] as String,
+                                                              style: const TextStyle(fontSize: 20),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 12),
+                                                        Expanded(
+                                                          child: Column(
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: [
+                                                              Text(
+                                                                option['label'] as String,
+                                                                style: TextStyle(
+                                                                  fontSize: 14,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  color: isSelected 
+                                                                      ? Colors.white 
+                                                                      : const Color(0xFF1C1C1E),
+                                                                  letterSpacing: -0.1,
+                                                                ),
+                                                              ),
+                                                              const SizedBox(height: 2),
+                                                              Text(
+                                                                option['description'] as String,
+                                                                style: TextStyle(
+                                                                  fontSize: 11,
+                                                                  fontWeight: FontWeight.w400,
+                                                                  color: isSelected 
+                                                                      ? Colors.white.withOpacity(0.8)
+                                                                      : const Color(0xFF8E8E93),
+                                                                  letterSpacing: -0.1,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    GestureDetector(
+                                      onTap: () {
+                                        HapticFeedback.lightImpact();
+                                        Navigator.of(context).pop('skip');
+                                        Navigator.of(context).pop(); // Go back to previous page
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(0.3),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Skip for now',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: themeBlue,
+                                            letterSpacing: -0.1,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
 class _MessageView extends StatelessWidget {
   final String text;
   const _MessageView({super.key, required this.text});
@@ -541,6 +1191,8 @@ class _MessageView extends StatelessWidget {
             letterSpacing: -0.1,
           ),
         ),
+        const SizedBox(height: 24),
+        _SkipAndFeelButton(),
       ],
     );
   }
