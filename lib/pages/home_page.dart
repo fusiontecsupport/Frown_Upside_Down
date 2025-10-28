@@ -1688,19 +1688,6 @@ class _HomePageState extends State<HomePage>
                 SizedBox(width: spacingBetween),
                 Expanded(
                   child: _buildActionCard(
-                    'Laugh',
-                    'Feel better',
-                    Icons.emoji_emotions,
-                    LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [kPrimary, kAccent],
-                    ),
-                  ),
-                ),
-                SizedBox(width: spacingBetween),
-                Expanded(
-                  child: _buildActionCard(
                     'Relax',
                     'Find peace',
                     Icons.spa,

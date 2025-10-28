@@ -2,6 +2,71 @@
                     FROWN UPSIDE DOWN APPLICATION DOCUMENTATION
 ================================================================================
 
+
+================================================================================
+                         CONVERSATION GUIDE: PAGES/TABS/CARDS/BUTTONS
+================================================================================
+
+HOME (home_page.dart)
+- Daily Wisdom (card): Daily motivational quote to set a positive tone.
+- Plan Status (card): Shows current plan (Free Trial/Lifetime) and benefits.
+- Quick Mood Boosters (buttons):
+  - Smile: Starts a 60-second Smile Exercise; logs a happy moment.
+  - Relax: Opens a 4‑7‑8 Breathing modal (~2 min); logs a relaxation session.
+- Breathing Cards (cards):
+  - 4‑7‑8 Technique: Shortcut to breathing guidance.
+  - Box Breathing: Alternate focused-breath option.
+- Stats Row (cards):
+  - Happy Days: Count of days with positive action.
+  - Improvement: Overall improvement indicator.
+  - Goals Met: Progress toward set wellness goals.
+- Statistics Grid (cards):
+  - Mood Check-ins, Happy Days, Wellness Goals, Day Streak: Deeper KPIs overview.
+- Sleep Stories (card): Navigates to sleep & relaxation area.
+- Wellness Content (button/card): Navigates to Wellness page.
+
+PROGRESS TAB (home_page.dart)
+- Your Journey (header card): Title and supportive subtitle.
+- Monthly Summary (cards): Happy Days, Improvement %, Goals Met snapshots.
+- Happiness Streak (indicator): Visual streak progress fill.
+- Weekly Overview (summary): Check-ins and activities by week.
+- Emotion Distribution (chart): Breakdown of recent emotions.
+- Statistics Grid (cards): Mood Check-ins, Happy Days, Wellness Goals, Day Streak.
+- Achievements (cards): Recent milestones for motivation.
+- Wellness Insight (tip card): Contextual suggestion based on recent activity.
+
+WELLNESS (wellness_page.dart)
+- Category Tabs (buttons): Filter content by All/Happiness/Motivation/Relaxation/Positivity.
+- Content Cards (cards): Template items (video/audio/image placeholders) to browse offline-friendly guidance.
+
+PROFILE (profile_page.dart)
+- Subscription (card): Membership status and key benefits.
+- Stats Items (cards): Sessions, Day Streak, Minutes at a glance.
+- Action Buttons (buttons): Save, dismiss, and setting toggles in dialogs/sections.
+
+EMOTION CONTENT (emotion_content_page.dart)
+- Media Controls (buttons): Play/Pause simulated audio/video with progress bars.
+- Tips (list): Read-only guidance per emotion.
+
+SUPPORT MESSAGES (support_messages_page.dart)
+- Next/Explore (buttons): Step through supportive prompts, then finish flow.
+- Mood Follow-up (buttons): Capture reflection on improvement and return to Home.
+
+LOGIN (login_page.dart)
+- Form Card (card): Sign-in form with glassmorphism.
+- Social Buttons (buttons): Optional Apple/Google/Facebook sign-in.
+
+REGISTER (register_page.dart)
+- Form Sections (cards): Grouped personal and security inputs.
+- Continue/Create Account (button): Validate and advance to plan selection.
+
+PLAN SELECTION (plan_selection_page.dart)
+- Plan Cards (cards): Choose Free Trial or Lifetime Access.
+- Continue (button): Confirms selection and proceeds.
+
+BOTTOM NAVIGATION (home_page.dart)
+- Tabs (buttons): Home | Wellness | Progress | Profile for primary navigation.
+
 APPLICATION OVERVIEW:
 Frown Upside Down is a comprehensive emotional wellness Flutter mobile application 
 designed to help users manage their emotions, practice mindfulness, and improve 
@@ -135,11 +200,11 @@ their mental well-being through guided content, mood tracking, and supportive re
    - Daily Inspiration card with 7 rotating motivational quotes
    - Daily Emotion Status with mood tracking and update functionality
    - Happiness Streak counter with fire emoji animation
-   - Quick Mood Boosters: Smile, Laugh, Relax action cards
+   - Quick Mood Boosters: Smile, Relax action cards
    - Wellness Tips carousel with 3 scrollable tip cards
    - Plan status display (Free Trial or Lifetime)
    - Wellness Content navigation button
-   - Bottom navigation bar (Home, Wellness, Profile)
+   - Bottom navigation bar (Home, Wellness, Progress, Profile)
    
    FEATURES:
    - Emotion dialog popup with 6 emotions + Magic button
@@ -151,6 +216,29 @@ their mental well-being through guided content, mood tracking, and supportive re
    - HapticFeedback throughout interface
    
    USE: Central hub for emotional wellness activities, mood tracking, content access
+
+================================================================================
+
+6a. PROGRESS TAB (home_page.dart)
+   SCREEN NAME: Progress (Bottom Nav Tab)
+   
+   PURPOSE: Visualize the user's wellness journey and daily improvement
+   
+   CONTENTS:
+   - Journey Header: "Your Journey" with supportive subtitle
+   - Monthly Summary: Happy Days, Improvement %, Goals Met
+   - Happiness Streak: Visual streak indicator
+   - Weekly Overview: Check-ins and activities
+   - Emotion Distribution: Recent emotions breakdown
+   - Statistics Grid: Mood Check-ins, Happy Days, Wellness Goals, Day Streak
+   - Achievements: Recent milestones
+   - Wellness Insight: Contextual tip based on recent activity
+   
+   FEATURES:
+   - Glassmorphism containers, smooth transitions, breathing accent animation
+   - Responsive spacing and layout
+   
+   USE: Track progress at a glance, reinforce positive habits, motivate consistency
 
 ================================================================================
 
@@ -271,6 +359,70 @@ their mental well-being through guided content, mood tracking, and supportive re
     - Reusable widgets for wellness features
     
     USE: Code organization, component reusability, consistent styling
+
+================================================================================
+                         CONVERSATION GUIDE: PAGES/TABS/CARDS/BUTTONS
+================================================================================
+
+HOME (home_page.dart)
+- Daily Wisdom (card): Daily motivational quote to set a positive tone.
+- Plan Status (card): Shows current plan (Free Trial/Lifetime) and benefits.
+- Quick Mood Boosters (buttons):
+  - Smile: Starts a 60-second Smile Exercise; logs a happy moment.
+  - Relax: Opens a 4‑7‑8 Breathing modal (~2 min); logs a relaxation session.
+- Breathing Cards (cards):
+  - 4‑7‑8 Technique: Shortcut to breathing guidance.
+  - Box Breathing: Alternate focused-breath option.
+- Stats Row (cards):
+  - Happy Days: Count of days with positive action.
+  - Improvement: Overall improvement indicator.
+  - Goals Met: Progress toward set wellness goals.
+- Statistics Grid (cards):
+  - Mood Check-ins, Happy Days, Wellness Goals, Day Streak: Deeper KPIs overview.
+- Sleep Stories (card): Navigates to sleep & relaxation area.
+- Wellness Content (button/card): Navigates to Wellness page.
+
+PROGRESS TAB (home_page.dart)
+- Your Journey (header card): Title and supportive subtitle.
+- Monthly Summary (cards): Happy Days, Improvement %, Goals Met snapshots.
+- Happiness Streak (indicator): Visual streak progress fill.
+- Weekly Overview (summary): Check-ins and activities by week.
+- Emotion Distribution (chart): Breakdown of recent emotions.
+- Statistics Grid (cards): Mood Check-ins, Happy Days, Wellness Goals, Day Streak.
+- Achievements (cards): Recent milestones for motivation.
+- Wellness Insight (tip card): Contextual suggestion based on recent activity.
+
+WELLNESS (wellness_page.dart)
+- Category Tabs (buttons): Filter content by All/Happiness/Motivation/Relaxation/Positivity.
+- Content Cards (cards): Template items (video/audio/image placeholders) to browse offline-friendly guidance.
+
+PROFILE (profile_page.dart)
+- Subscription (card): Membership status and key benefits.
+- Stats Items (cards): Sessions, Day Streak, Minutes at a glance.
+- Action Buttons (buttons): Save, dismiss, and setting toggles in dialogs/sections.
+
+EMOTION CONTENT (emotion_content_page.dart)
+- Media Controls (buttons): Play/Pause simulated audio/video with progress bars.
+- Tips (list): Read-only guidance per emotion.
+
+SUPPORT MESSAGES (support_messages_page.dart)
+- Next/Explore (buttons): Step through supportive prompts, then finish flow.
+- Mood Follow-up (buttons): Capture reflection on improvement and return to Home.
+
+LOGIN (login_page.dart)
+- Form Card (card): Sign-in form with glassmorphism.
+- Social Buttons (buttons): Optional Apple/Google/Facebook sign-in.
+
+REGISTER (register_page.dart)
+- Form Sections (cards): Grouped personal and security inputs.
+- Continue/Create Account (button): Validate and advance to plan selection.
+
+PLAN SELECTION (plan_selection_page.dart)
+- Plan Cards (cards): Choose Free Trial or Lifetime Access.
+- Continue (button): Confirms selection and proceeds.
+
+BOTTOM NAVIGATION (home_page.dart)
+- Tabs (buttons): Home | Wellness | Progress | Profile for primary navigation.
 
 ================================================================================
                             DESIGN SYSTEM & FEATURES
@@ -399,3 +551,584 @@ around the core mission of helping users improve their emotional well-being.
 ================================================================================
                               END OF DOCUMENTATION
 ================================================================================
+
+
+================================================================================
+                         CLIENT PRESENTATION GUIDE
+================================================================================
+
+TALK TRACK (2–3 minutes)
+- What it is: Offline-first emotional wellness app for quick mood shifts.
+- Why it matters: Immediate value without uploaded content; calm, accessible UI.
+- How it works: Home (Smile/Relax), Wellness templates, Progress insights, Profile.
+
+DEMO SCRIPT (≈5 minutes)
+1) Home
+   - Show Daily Wisdom and Plan Status
+   - Tap Smile → 60s prompts → completion confetti → stats update
+   - Tap Relax → 4‑7‑8 visual guidance → completion card
+2) Progress
+   - Show Your Journey, Monthly Summary, Streak, Weekly Overview, Emotion Distribution, Achievements
+3) Wellness
+   - Switch categories; open a template item (offline placeholder)
+4) Profile
+   - Show plan status and settings
+
+KEY MESSAGES
+- Works offline, data local; gentle animations and haptics
+- Clear roadmap: adjustable durations, journaling, localization, optional sync
+
+================================================================================
+                             APP ARCHITECTURE OVERVIEW
+================================================================================
+
+ Frontend:
+ - Flutter (Dart) using Material and custom theming.
+ - StatefulWidgets with clear ownership of AnimationControllers.
+ - Route-driven navigation from Splash → Login/Register → Plan Selection → Home.
+
+ State & Data:
+ - Local-only storage for preferences, mood check-ins, and streaks.
+ - In-memory session state (no remote auth/sync in current version).
+ - Simple data models for emotions, content items, and user profile.
+
+ UI Composition:
+ - Reusable glassmorphism cards and buttons across pages.
+ - Consistent spacing scale and responsive breakpoints.
+ - Accessibility-aware typography and contrast choices.
+
+ Error Handling:
+ - Form validators for login/register inputs.
+ - Guarded animation lifecycle and safe disposal.
+ - Friendly, non-technical error messages where applicable.
+
+ Assets:
+ - Bundled images, icons, and animations (offline-first).
+ - Logical directory structure aligned with Flutter conventions.
+
+================================================================================
+                           ACCESSIBILITY & INCLUSIVITY
+================================================================================
+
+ - Supports system font scaling; key UI remains readable at large sizes.
+ - Color choices target comfortable contrast for common scenarios.
+ - Reduced motion mode respected where the platform setting is available.
+ - Haptics are subtle and intended to be non-intrusive; can be toggled.
+ - Controls include clear labels and large tap targets where practical.
+
+================================================================================
+                                 QA & TEST PLAN
+================================================================================
+
+ Unit & Widget Tests:
+ - Validate form input rules and edge cases.
+ - Verify widget build and interaction basics for major screens.
+
+ Manual Test Checklist:
+ - Splash → Login → Register → Plan Selection → Home navigation works.
+ - Emotion selection dialogs and follow-ups behave as expected.
+ - Support Messages flow completes and returns to Home.
+ - Profile image pick/update functions on supported platforms.
+ - Bottom navigation preserves expected screen state.
+
+ Performance Targets:
+ - Smooth animations on mid-tier devices at or near 60 fps.
+ - Startup completes within a reasonable time with assets bundled.
+
+================================================================================
+                           TROUBLESHOOTING & SUPPORT
+================================================================================
+
+ Common Issues:
+ - Animations feel slow: enable reduced motion or close background apps.
+ - Haptics too strong: toggle haptics in settings or system preferences.
+ - Profile photo not updating: ensure gallery permission is granted.
+
+ Getting Help:
+ - For feedback, feature requests, or issues, please include app version,
+   device model, OS version, and a brief description of steps to reproduce.
+
+================================================================================
+        UI ELEMENTS REFERENCE: TABS / CARDS / BUTTONS PER PAGE
+================================================================================
+
+SPLASH (splash_page.dart)
+- Branding Card (card): Animated logo, title, and tagline display.
+- Progress Indicator (card): Animated gradient bar indicating app initialization.
+- Background Selector (buttons): Aurora, Liquid, Orbs (internal dev toggle only).
+
+LOGIN (login_page.dart)
+- Auth Card (card): Email/Username, Password fields, error note.
+- Sign In (button): Validates credentials; navigates to Home on success.
+- Social (buttons): Continue with Apple, Google, Facebook.
+- Create Account (button/link): Navigates to Register.
+- Forgot Password (button/link): Presentational placeholder (no remote flow).
+
+REGISTER (register_page.dart)
+- Personal Info (card): Full Name, Date of Birth, Email inputs.
+- Security (card): Password, Confirm Password inputs with validation.
+- Create Account (button): Validates and proceeds to Plan Selection.
+- Social (buttons): Apple, Google, Facebook registration options.
+
+PLAN SELECTION (plan_selection_page.dart)
+- Free Trial (card): 7‑day access, basic features, selectable.
+- Lifetime (card): One‑time purchase, premium features, POPULAR badge.
+- Continue (button): Confirms selection; navigates to Home.
+
+HOME (home_page.dart)
+- Daily Wisdom (card): Rotating quote; refreshes on app start/day change.
+- Plan Status (card): Displays Free Trial or Lifetime with key benefits.
+- Quick Mood Boosters (cards/buttons): Smile; Relax.
+  - Smile (button): Starts 60‑second Smile exercise; logs completion.
+  - Relax (button): Opens 4‑7‑8 Breathing modal (~2 minutes).
+- Breathing (cards): 4‑7‑8 Technique; Box Breathing shortcuts.
+- Stats Row (cards): Happy Days; Improvement; Goals Met.
+- Statistics Grid (cards): Mood Check‑ins; Happy Days; Wellness Goals; Day Streak.
+- Sleep Stories (card): Shortcut to sleep and relaxation area.
+- Wellness Content (button/card): Navigates to Wellness page.
+- Emotion Dialog (buttons): Happy, Sad, Stressed, Nervous, Disappointed, Calm, Magic.
+  - Magic (button): Opens nested dialog for more nuanced emotions.
+
+PROGRESS TAB (home_page.dart)
+- Your Journey (card): Title and supportive subtitle.
+- Monthly Summary (cards): Happy Days; Improvement %; Goals Met.
+- Streak Indicator (card): Visual streak progress bar.
+- Weekly Overview (card): Check‑ins and activities by week.
+- Emotion Distribution (card/chart): Recent emotions breakdown.
+- Statistics Grid (cards): Mood Check‑ins; Happy Days; Wellness Goals; Day Streak.
+- Achievements (cards): Recent milestones with earned dates.
+- Wellness Insight (card): Contextual tip based on recent activity.
+
+WELLNESS (wellness_page.dart)
+- Category Tabs (buttons): All; Happiness; Motivation; Relaxation; Positivity.
+- Content Items (cards): Title, author, duration, likes, type icon.
+- Actions (buttons): Play/Open; Bookmark; Share.
+
+EMOTION CONTENT (emotion_content_page.dart)
+- Header (card): Emotion emoji, title, short description.
+- Audio (card): Title, duration, play/pause, progress bar.
+- Video (card): Title, duration, play/pause, progress bar.
+- Tips (list/cards): Five guidance items per emotion.
+- Transport (buttons): Play; Pause; Seek via progress bar gesture.
+
+SUPPORT MESSAGES (support_messages_page.dart)
+- Message Panel (card): Encouraging text; tap to advance.
+- Next (button): Advances to the next message.
+- Explore (button): Appears after last message; shows suggestion.
+- Follow‑up (buttons): Yes, a bit; Yes, a lot; Not yet; I feel worse; Skip; Prefer not to say.
+
+PROFILE (profile_page.dart)
+- Profile Header (card): Avatar with camera overlay; name; email.
+- Subscription (card): Current plan; upgrade/renewal cues.
+- Stats (cards): Sessions; Day Streak; Minutes.
+- My Content (card): Saved/favorites list entry point.
+- Settings (card/toggles): Notifications; Sound; Language.
+- Update Photo (button): Opens image picker.
+- Logout (button): Signs out to Login.
+
+BOTTOM NAVIGATION (home_page.dart)
+- Tabs (buttons): Home; Wellness; Progress; Profile.
+
+INTERACTION STATES (GLOBAL)
+- Pressed: Scale and shadow adjust subtly on tap.
+- Disabled: Lower opacity; no elevation; haptics off.
+- Focused: Highlight ring on supported platforms.
+- Loading: Inline spinners on long‑running actions (e.g., create account).
+
+================================================================================
+                               PAGE WIREFRAMES (ASCII)
+================================================================================
+
+SPLASH
+
+  +--------------------------------------------------------------+
+  |                          Logo (anim)                         |
+  |                    "Frown Upside Down"                       |
+  |                  Turn moments into smiles                    |
+  |                                                              |
+  |                [   Animated Progress Bar   ]                 |
+  |                                                              |
+  +--------------------------------------------------------------+
+
+LOGIN
+
+  +--------------------------------------------------------------+
+  |                        Auth Card                             |
+  |  [ Email / Username _________________________________ ]      |
+  |  [ Password _________________________________________ ]      |
+  |  ( Take a moment to breathe )                                 |
+  |  [ Sign In ]    [  ] [ G ] [ f ]                            |
+  |  [ Create Account ]   [ Forgot Password ]                    |
+  +--------------------------------------------------------------+
+
+REGISTER
+
+  +--------------------------------------------------------------+
+  |                      Personal Info                           |
+  |  [ Full Name __________________ ]  [ DOB  __/__/____ ]       |
+  |  [ Email ______________________ ]                             |
+  |                      Security                                 |
+  |  [ Password ________________ ]   [ Confirm ______________ ]   |
+  |  [ Create Account ]     [  ] [ G ] [ f ]                    |
+  +--------------------------------------------------------------+
+
+PLAN SELECTION
+
+  +----------------------+     +-------------------------------+
+  | Free Trial           |     | Lifetime     (POPULAR)        |
+  | 7 days, basics       |     | One-time, premium features    |
+  |  [ Select ]          |     |  [ Select ]                   |
+  +----------------------+     +-------------------------------+
+                            [ Continue ]
+
+HOME
+
+  +------------------+   +--------------------+
+  | Daily Wisdom     |   | Plan Status        |
+  | “Quote ...”      |   | Free / Lifetime    |
+  +------------------+   +--------------------+
+
+  +------------------------ Quick Mood Boosters ------------------------+
+  |  [ Smile ] 60s exercise            [ Relax ] 4-7-8 guidance         |
+  +------------------------------------------------------------------------
+
+  +------------ Breathing ------------+  +------------ Breathing ---------+
+  | 4-7-8 Technique (shortcut)        |  | Box Breathing (shortcut)       |
+  +-----------------------------------+  +--------------------------------+
+
+  +---- Stats ----+  +-- Stats --+  +---- Stats ----+
+  | Happy Days    |  | Improve % |  | Goals Met     |
+  +---------------+  +-----------+  +---------------+
+
+  [ Wellness Content → ]
+
+BOTTOM NAV (GLOBAL)
+
+  [ Home ]   [ Wellness ]   [ Progress ]   [ Profile ]
+
+PROGRESS TAB
+
+  +---------------- Your Journey ----------------+
+  | Title + subtitle                              |
+  +-----------------------------------------------+
+
+  +----- Monthly Summary -----+
+  | Happy Days | Improve % | Goals Met           |
+  +---------------------------------------------+
+
+  +------------- Streak -------------+
+  | ████████░░░░  (current streak)   |
+  +----------------------------------+
+
+  +---- Weekly Overview ----+   + Emotion Distribution +
+  | Bars by day              |   | Pie/Donut segments   |
+  +--------------------------+   +----------------------+
+
+  +----- Statistics Grid -----+
+  | Check‑ins | Happy Days | Goals | Day Streak        |
+  +-----------------------------------------------+
+
+WELLNESS
+
+  [ All ] [ Happiness ] [ Motivation ] [ Relaxation ] [ Positivity ]
+
+  +---------------- Content Card ----------------+
+  | [Icon] Title          by AB   ❤ 123   2:30     |
+  | Short description...                           |
+  | [ Open ]   [ Bookmark ]   [ Share ]            |
+  +-----------------------------------------------+
+
+EMOTION CONTENT
+
+  +-------------- Header --------------+
+  | 😀  Happy     Short description     |
+  +------------------------------------+
+
+  +--------------- Audio ---------------+
+  | Title   3:00   [►/❚❚]  [████░░░░]  |
+  +-------------------------------------+
+
+  +--------------- Video ---------------+
+  | Title   4:45   [►/❚❚]  [█████░░░]  |
+  +-------------------------------------+
+
+  +---------------- Tips (5) ----------------+
+  | 1) ...  2) ...  3) ...  4) ...  5) ...      |
+  +---------------------------------------------+
+
+SUPPORT MESSAGES
+
+  +---------------- Message ----------------+
+  | Encouraging text... Tap to continue      |
+  +-----------------------------------------+
+  [ Next ]                         [ Explore ]
+
+  +----------- Follow-up -----------+
+  | Yes a bit | Yes a lot | Not yet | Worse | Skip | Prefer not |
+  +---------------------------------+
+
+PROFILE
+
+  +--------------- Profile ---------------+
+  | [ Avatar ]  Jane Doe                  |
+  |            jane@example.com           |
+  +---------------------------------------+
+
+  +----- Subscription -----+   +---- Stats ----+
+  | Plan: Lifetime         |   | Sessions | ... |
+  +------------------------+   +--------------+
+
+  +----------- Settings -----------+
+  | Notifications [on/off]         |
+  | Sound [on/off]                 |
+  | Language [EN ▼]                |
+  +--------------------------------+
+
+  [ Update Photo ]     [ Logout ]
+
+================================================================================
+                 PROGRESS PAGE: DETAILED METRICS & INTERACTIONS
+================================================================================
+
+ OVERVIEW:
+ - Purpose: Provide an at-a-glance view of recent activity and trends.
+ - Layout: Header card → Monthly Summary → Streak → Weekly Overview/Emotion Mix → Stats Grid → Insight.
+
+ METRICS DEFINITIONS:
+ - Happy Days: Count of days with at least one positive action (e.g., Smile/Relax, check-in).
+ - Improvement %: Relative improvement based on the last 7 vs previous 7 days (heuristic).
+ - Goals Met: Count of configured wellness goals achieved in the period.
+ - Day Streak: Consecutive days with a qualifying action.
+
+ CARDS & INTERACTIONS:
+ - Your Journey (card):
+   - Content: Title and supportive subtitle.
+   - Interaction: None (static intro).
+ - Monthly Summary (cards):
+   - Content: Happy Days; Improvement %; Goals Met.
+   - Interaction: Tap to show brief tooltip (definition); long‑press to pin to top (local state).
+ - Streak Indicator (card):
+   - Content: Visual bar with current streak value.
+   - Interaction: Tap to open hint on how to maintain the streak.
+ - Weekly Overview (card):
+   - Content: Bars by day; check‑ins and activities.
+   - Interaction: Horizontal scroll if needed; tap a bar to show the day’s summary.
+ - Emotion Distribution (card/chart):
+   - Content: Proportion of recent emotions (pie/donut style).
+   - Interaction: Tap segment to show emotion tips shortcut.
+ - Statistics Grid (cards):
+   - Content: Mood Check‑ins; Happy Days; Wellness Goals; Day Streak.
+   - Interaction: Tapping an item shows a short description popover.
+ - Wellness Insight (card):
+   - Content: Contextual tip derived from recent usage (local heuristic; no cloud).
+   - Interaction: Tap to copy tip to clipboard.
+
+ DATA SOURCES (LOCAL):
+ - Mood Check‑ins: From Home → Emotion dialogs.
+ - Positive Actions: Smile/Relax completions, basic interactions.
+ - Goals: Local simple counters; no remote tracking.
+
+ STATES & EMPTY CASES:
+ - New User (no data):
+   - Monthly Summary shows placeholders (—); Insight offers a getting‑started tip.
+ - Low Activity:
+   - Streak card indicates how to rebuild; Insight suggests a short action.
+ - High Activity:
+   - Insight celebrates progress with supportive language.
+
+ ACCESSIBILITY:
+ - Charts include text equivalents (percentages/counts).
+ - Tap targets meet minimum recommended sizes.
+
+================================================================================
+                        PROGRESS PAGE WIREFRAME (ASCII)
+================================================================================
+
+  +---------------------- Your Journey -----------------------+
+  |  Your Journey                                            |
+  |  Keep going—you’re building healthy habits.              |
+  +----------------------------------------------------------+
+
+  +------------------- Monthly Summary ----------------------+    Legend
+  |  Happy Days    |  Improvement %   |   Goals Met          |    [◻] card
+  |       12       |       +14%       |        3/4           |    [►] action
+  +----------------------------------------------------------+
+
+  +--------------------- Streak Indicator -------------------+
+  |  Day Streak: 7                                          |
+  |  ███████░░░░  (tap for tips)                            |
+  +----------------------------------------------------------+
+
+  +----------------- Weekly Overview (bars) -----------------+   +-- Emotion Mix --+
+  |  Mon  Tue  Wed  Thu  Fri  Sat  Sun                       |   | 😀  40%         |
+  |  ██   ███  █    ██   ███  ████ █                         |   | 😟  20%         |
+  |  Check-ins and activities by day                         |   | 😌  18%         |
+  +----------------------------------------------------------+   | 😬  12%         |
+                                                                | 😞  10%         |
+                                                                +------------------+
+
+  +------------------- Statistics Grid ----------------------+  [Tap any item]
+  |  Mood Check-ins |  Happy Days  |  Wellness Goals  | Streak|
+  |       18        |      12      |       3/4        |   7   |
+  +----------------------------------------------------------+
+
+  +-------------------- Wellness Insight --------------------+
+  |  Tip: A 2‑minute 4‑7‑8 session could boost today’s mood. |
+  |  [► Copy Tip]                                            |
+  +----------------------------------------------------------+
+
+  Empty State (new user):
+  +---------------------- Your Journey -----------------------+
+  |  Let’s get started—try a Smile or Relax activity today.  |
+  +----------------------------------------------------------+
+  +------------------- Monthly Summary ----------------------+   (placeholders)
+  |   —            |       —         |        —               |
+  +----------------------------------------------------------+
+
+================================================================================
+                        INTERACTION FLOW & UI RATIONALE
+================================================================================
+
+SPLASH
+- Branding Card (card)
+  - Purpose: Establish identity and calm tone immediately on open.
+  - Placement: Centered to focus attention during brief load.
+  - Flow: Auto-advance to Login after progress completes.
+
+LOGIN
+- Auth Card (card)
+  - Purpose: Primary sign-in surface; shows inputs and guidance.
+  - Placement: Center to reduce reach and scanning; above fold.
+  - Flow: On success → Home; on error → inline message.
+- Sign In (button)
+  - Purpose: Submit credentials.
+  - Placement: Beneath inputs for natural top→down completion.
+  - Flow: Validate → success to Home or error toast.
+- Social (buttons)
+  - Purpose: Fast sign-in alternatives.
+  - Placement: Inline with sign-in to present parity of options.
+  - Flow: Provider auth → Home on success.
+- Create Account (button/link)
+  - Purpose: Route to onboarding for new users.
+  - Placement: Lower priority under primary actions.
+  - Flow: → Register.
+
+REGISTER
+- Personal Info / Security (cards)
+  - Purpose: Chunk inputs to reduce cognitive load.
+  - Placement: Personal first, Security second; mirrors mental model.
+  - Flow: Validate fields; show inline hints on failure.
+- Create Account (button)
+  - Purpose: Commit registration.
+  - Placement: At end of form flow.
+  - Flow: → Plan Selection on success.
+
+PLAN SELECTION
+- Free Trial / Lifetime (cards)
+  - Purpose: Present value choices with clarity.
+  - Placement: Side by side; Lifetime right with POPULAR badge.
+  - Flow: Select highlights; Continue confirms.
+- Continue (button)
+  - Purpose: Confirm selection and proceed.
+  - Placement: Below cards to follow read path.
+  - Flow: → Home with selected plan flag.
+
+HOME
+- Daily Wisdom (card)
+  - Purpose: Quick positive prime for the session.
+  - Placement: Top-left; immediate visibility.
+  - Flow: Passive; refreshes daily.
+- Plan Status (card)
+  - Purpose: Reinforce benefits and state (trial vs lifetime).
+  - Placement: Top-right; dashboard summary cluster.
+  - Flow: Tap → plan info tooltip.
+- Quick Mood Boosters (Smile, Relax)
+  - Purpose: One-tap actions to improve mood.
+  - Placement: Prominent horizontal section to invite use.
+  - Flow: Smile → 60s flow with confetti; Relax → 4‑7‑8 guidance; both log completion.
+- Breathing Shortcuts (cards)
+  - Purpose: Secondary entry to breathing guidance.
+  - Placement: Below boosters as deeper content.
+  - Flow: → Breathing modal.
+- Stats Row / Statistics Grid (cards)
+  - Purpose: Show progress and encourage consistency.
+  - Placement: Mid-page; scannable summaries first, details grid later.
+  - Flow: Tap items → definition popovers.
+- Wellness Content (button/card)
+  - Purpose: Bridge to content library.
+  - Placement: After stats to propose next activity.
+  - Flow: → Wellness page.
+- Emotion Dialog (buttons)
+  - Purpose: Log current mood; unlock tailored content.
+  - Placement: Triggered action; modal center.
+  - Flow: Select emotion → nested options (Magic) → optional follow‑up.
+
+PROGRESS
+- Your Journey (card)
+  - Purpose: Orient the user to the page’s goal.
+  - Placement: Top; introduces summary cards.
+  - Flow: Static.
+- Monthly Summary (cards)
+  - Purpose: Fast, comparable KPIs.
+  - Placement: Immediately after header for quick scan.
+  - Flow: Tap → KPI definition popover.
+- Streak Indicator (card)
+  - Purpose: Motivate continuity with simple visual.
+  - Placement: Near summary to connect habit to outcome.
+  - Flow: Tap → tips to maintain streak.
+- Weekly Overview / Emotion Distribution (cards)
+  - Purpose: Provide temporal and emotional context.
+  - Placement: Middle of page; wider cards.
+  - Flow: Tap bars/segments → show day/emotion tips.
+- Statistics Grid / Insight (cards)
+  - Purpose: Details and a single recommended next step.
+  - Placement: Lower; concludes with actionable tip.
+  - Flow: Tap → copy tip or show descriptions.
+
+WELLNESS
+- Category Tabs (buttons)
+  - Purpose: Filter content by need.
+  - Placement: Top under app bar for quick switching.
+  - Flow: Updates the list instantly.
+- Content Cards (cards)
+  - Purpose: Present items with key metadata.
+  - Placement: List/grid according to screen size.
+  - Flow: Open → detail/play; actions: bookmark/share.
+
+EMOTION CONTENT
+- Header (card)
+  - Purpose: Set emotional context and intent.
+  - Placement: Top; anchors the page.
+  - Flow: Passive with subtle motion.
+- Audio/Video (cards)
+  - Purpose: Deliver guided content.
+  - Placement: Mid-page; audio first (quick), video second (longer).
+  - Flow: Play/pause; progress; tips below.
+- Tips (list)
+  - Purpose: Provide practical steps.
+  - Placement: Below media for after-play action.
+  - Flow: Read-only.
+
+SUPPORT MESSAGES
+- Message Panel (card)
+  - Purpose: Provide supportive, stepwise guidance.
+  - Placement: Center for deep focus.
+  - Flow: Tap to advance; explore at end.
+- Follow-up (buttons)
+  - Purpose: Reflect mood change and close loop.
+  - Placement: Bottom as a terminal action.
+  - Flow: Selection logged; return to Home.
+
+PROFILE
+- Profile Header (card)
+  - Purpose: Identity and quick photo update.
+  - Placement: Top; aligns with other apps’ patterns.
+  - Flow: Tap avatar → image picker.
+- Subscription / Stats / Settings (cards)
+  - Purpose: Account status, progress at a glance, preferences.
+  - Placement: Top→middle columns/rows; scannable blocks.
+  - Flow: Toggle settings; view stats; manage plan.
+- Logout (button)
+  - Purpose: Exit to Login.
+  - Placement: Bottom; destructive/terminal location.
+  - Flow: Navigate to Login; clear session state.
