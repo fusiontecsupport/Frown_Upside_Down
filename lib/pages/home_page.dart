@@ -7,6 +7,9 @@ import 'login_page.dart';
 import 'profile_page.dart';
 import 'wellness_components.dart';
 import 'wellness_page.dart';
+import 'smile_animation_page.dart';
+import 'relax_animation_page.dart';
+import 'mindful_breathing_page.dart';
 
 class HomePage extends StatefulWidget {
   final String planType;
@@ -231,9 +234,6 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildContent() {
-    if (!_emotionComplete) {
-      return const SizedBox();
-    }
     switch (_selectedIndex) {
       case 0:
         return _buildHomeContent();
@@ -1302,18 +1302,24 @@ class _HomePageState extends State<HomePage>
                     child: GestureDetector(
                       onTap: () {
                         HapticFeedback.lightImpact();
-                        // Show encouraging message for each tip
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Great choice! ${tip['description']}'),
-                            backgroundColor: tip['color'] as Color,
-                            duration: const Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        if ((tip['title'] as String) == 'Mindful Breathing') {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const MindfulBreathingPage()),
+                          );
+                        } else {
+                          // Show encouraging message for other tips
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Great choice! ${tip['description']}'),
+                              backgroundColor: tip['color'] as Color,
+                              duration: const Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       },
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
@@ -1676,7 +1682,7 @@ class _HomePageState extends State<HomePage>
                 Expanded(
                   child: _buildActionCard(
                     'Smile',
-                    'Turn it around',
+                    'Hold to smile',
                     Icons.sentiment_very_satisfied,
                     LinearGradient(
                       begin: Alignment.topLeft,
@@ -1689,7 +1695,7 @@ class _HomePageState extends State<HomePage>
                 Expanded(
                   child: _buildActionCard(
                     'Relax',
-                    'Find peace',
+                    '4‑7‑8 Breathing',
                     Icons.spa,
                     LinearGradient(
                       begin: Alignment.topLeft,
@@ -1739,21 +1745,40 @@ class _HomePageState extends State<HomePage>
               borderRadius: BorderRadius.circular(16),
               onTap: () {
                 HapticFeedback.lightImpact();
-                // Handle action
+                if (title.toLowerCase() == 'smile') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SmileAnimationPage()),
+                  );
+                } else if (title.toLowerCase() == 'relax') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const RelaxAnimationPage()),
+                  );
+                }
+              },
+              onLongPress: () {
+                HapticFeedback.mediumImpact();
+                if (title.toLowerCase() == 'smile') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SmileAnimationPage()),
+                  );
+                }
               },
               child: Padding(
                 padding: EdgeInsets.all(padding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: iconSize,
-                      height: iconSize,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.22),
-                        borderRadius: BorderRadius.circular(10),
+                    Hero(
+                      tag: title == 'Smile' ? 'smileHero' : 'quickIcon_$title',
+                      child: Container(
+                        width: iconSize,
+                        height: iconSize,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.22),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(icon, color: Colors.white, size: iconInnerSize),
                       ),
-                      child: Icon(icon, color: Colors.white, size: iconInnerSize),
                     ),
                     const Spacer(),
                     Text(
