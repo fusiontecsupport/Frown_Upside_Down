@@ -19,6 +19,7 @@ Frown Upside Down is a comprehensive emotional wellness Flutter mobile applicati
 
 ---
 
+
 ### 2. Splash Page (splash_page.dart)
 **Screen Name:** `SplashPage`
 

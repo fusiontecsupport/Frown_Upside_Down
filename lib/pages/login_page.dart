@@ -26,13 +26,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late AnimationController _backgroundController;
-  late AnimationController _breathingController;
   late AnimationController _cardController;
   late AnimationController _socialController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _backgroundAnimation;
-  late Animation<double> _breathingAnimation;
   late Animation<double> _cardAnimation;
   late Animation<double> _socialAnimation;
 
@@ -53,11 +51,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     
     _backgroundController = AnimationController(
       duration: const Duration(seconds: 10),
-      vsync: this,
-    )..repeat(reverse: true);
-    
-    _breathingController = AnimationController(
-      duration: const Duration(seconds: 4),
       vsync: this,
     )..repeat(reverse: true);
     
@@ -88,14 +81,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       parent: _backgroundController,
       curve: Curves.easeInOut,
     );
-    
-    _breathingAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.08,
-    ).animate(CurvedAnimation(
-      parent: _breathingController,
-      curve: Curves.easeInOut,
-    ));
     
     _cardAnimation = Tween<double>(
       begin: 0.0,
@@ -134,7 +119,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     _fadeController.dispose();
     _slideController.dispose();
     _backgroundController.dispose();
-    _breathingController.dispose();
     _cardController.dispose();
     _socialController.dispose();
     super.dispose();
@@ -241,11 +225,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   
                       // Animated logo with app name (horizontal)
                       _buildAnimatedLogo(),
-                      
-                      SizedBox(height: sectionSpaceMedium),
-                      
-                      // Breathing reminder
-                      _buildBreathingReminder(),
                       
                       SizedBox(height: sectionSpaceLarge),
                       
@@ -420,191 +399,121 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   Widget _buildGlassCard() {
-    return AnimatedBuilder(
-      animation: _breathingAnimation,
-      builder: (context, child) {
-        final size = MediaQuery.of(context).size;
-        final isSmallHeight = size.height < 700;
-        final cardPad = isSmallHeight ? 20.0 : 32.0;
-        return Transform.scale(
-          scale: 1.0 + (_breathingAnimation.value - 1.0) * 0.015,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(32),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-              child: Container(
-                padding: EdgeInsets.all(cardPad),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white.withOpacity(0.75),
-                      Colors.white.withOpacity(0.65),
-                      Colors.white.withOpacity(0.70),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.5),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF4A6FA5).withOpacity(0.25),
-                      blurRadius: 50,
-                      offset: const Offset(0, 25),
-                      spreadRadius: -5,
-                    ),
-                    BoxShadow(
-                      color: const Color(0xFF5B7DB1).withOpacity(0.2),
-                      blurRadius: 35,
-                      offset: const Offset(0, 15),
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 40,
-                      offset: const Offset(0, 20),
-                    ),
-                  ],
-                ),
-                child: _buildLoginForm(),
-              ),
+    final size = MediaQuery.of(context).size;
+    final isSmallHeight = size.height < 700;
+    final cardPad = isSmallHeight ? 20.0 : 32.0;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(32),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+        child: Container(
+          padding: EdgeInsets.all(cardPad),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.75),
+                Colors.white.withOpacity(0.65),
+                Colors.white.withOpacity(0.70),
+              ],
             ),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.5),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF4A6FA5).withOpacity(0.25),
+                blurRadius: 50,
+                offset: const Offset(0, 25),
+                spreadRadius: -5,
+              ),
+              BoxShadow(
+                color: const Color(0xFF5B7DB1).withOpacity(0.2),
+                blurRadius: 35,
+                offset: const Offset(0, 15),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 40,
+                offset: const Offset(0, 20),
+              ),
+            ],
           ),
-        );
-      },
+          child: _buildLoginForm(),
+        ),
+      ),
     );
   }
 
   Widget _buildAnimatedLogo() {
-    return AnimatedBuilder(
-      animation: _breathingAnimation,
-      builder: (context, child) {
-        final size = MediaQuery.of(context).size;
-        final isNarrow = size.width < 360;
-        final logoSize = isNarrow ? 56.0 : 72.0;
-        final titleSize = isNarrow ? 20.0 : 24.0;
-        return Transform.scale(
-          scale: 0.95 + (_breathingAnimation.value - 1.0) * 0.5,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Logo with enhanced breathing
-                Container(
-                  width: logoSize,
-                  height: logoSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF4A6FA5).withOpacity(0.4 * _breathingAnimation.value),
-                        blurRadius: 25,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: Image.asset(
-                    'assets/splash/logo.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xFF4A6FA5),
-                              Color(0xFF5B7DB1),
-                            ],
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.self_improvement,
-                          size: 32,
-                          color: Colors.white,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(width: isNarrow ? 8 : 16),
-                // App name with better styling, scaled to fit
-                Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Frown Upside Down',
-                      style: TextStyle(
-                        fontSize: titleSize,
-                        fontWeight: FontWeight.w300,
-                        color: const Color(0xFF2C4A7C),
-                        letterSpacing: 1.1,
-                      ),
-                    ),
-                  ),
+    final size = MediaQuery.of(context).size;
+    final isNarrow = size.width < 360;
+    final logoSize = isNarrow ? 56.0 : 72.0;
+    final titleSize = isNarrow ? 20.0 : 24.0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Logo with static shadow
+          Container(
+            width: logoSize,
+            height: logoSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4A6FA5).withOpacity(0.4),
+                  blurRadius: 25,
+                  spreadRadius: 5,
                 ),
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildBreathingReminder() {
-    return AnimatedBuilder(
-      animation: _breathingAnimation,
-      builder: (context, child) {
-        return Opacity(
-          opacity: math.min(1.0, math.max(0.0, 0.6 + (_breathingAnimation.value - 1.0) * 5)),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Transform.scale(
-                scale: _breathingAnimation.value,
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    gradient: const RadialGradient(
+            child: Image.asset(
+              'assets/splash/logo.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
                       colors: [
                         Color(0xFF4A6FA5),
                         Color(0xFF5B7DB1),
                       ],
                     ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF4A6FA5).withOpacity(0.6),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
                   ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Text(
-                'Take a moment to breathe',
-                style: TextStyle(
-                  color: const Color(0xFF2C4A7C).withOpacity(0.75),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w300,
-                  letterSpacing: 1.0,
-                ),
-              ),
-            ],
+                  child: const Icon(
+                    Icons.self_improvement,
+                    size: 32,
+                    color: Colors.white,
+                  ),
+                );
+              },
+            ),
           ),
-        );
-      },
+          SizedBox(width: isNarrow ? 8 : 16),
+          // App name with better styling, scaled to fit
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Frown Upside Down',
+                style: TextStyle(
+                  fontSize: titleSize,
+                  fontWeight: FontWeight.w300,
+                  color: const Color(0xFF2C4A7C),
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1045,7 +954,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       padding: const EdgeInsets.only(bottom: 12),
       child: Center(
         child: Text(
-          '© 2025 Frown Upside Down',
+          ' 2025 Frown Upside Down',
           style: TextStyle(
             color: Colors.black.withOpacity(0.45),
             fontSize: 12,
@@ -1117,4 +1026,3 @@ class GoogleGPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
-

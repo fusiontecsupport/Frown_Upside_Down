@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'dart:math' show cos, sin, Random;
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'emotion_content_page.dart';
 import 'support_messages_page.dart';
@@ -10,6 +12,7 @@ import 'wellness_page.dart';
 import 'smile_animation_page.dart';
 import 'relax_animation_page.dart';
 import 'mindful_breathing_page.dart';
+import 'candy_crush_game.dart';
 
 class HomePage extends StatefulWidget {
   final String planType;
@@ -40,6 +43,25 @@ class _HomePageState extends State<HomePage>
   int _selectedIndex = 0;
   bool _emotionComplete = false;
   bool _emotionDialogShown = false;
+  
+  // Turn Frown Around card state
+  int _frownTurnedCount = 0;
+  String _currentChallenge = '';
+  bool _challengeCompleted = false;
+  
+  // New animation states
+  bool _isFlipping = false;
+  bool _isShaking = false;
+  bool _showParticles = false;
+  int _currentActivityIndex = 0;
+  late AnimationController _flipController;
+  late AnimationController _shakeController;
+  late AnimationController _particleController;
+  
+  
+  // Emotion state
+  String _selectedEmotion = '';
+  String _selectedEmoji = '';
 
   @override
   void initState() {
@@ -52,6 +74,21 @@ class _HomePageState extends State<HomePage>
     
     _breathingController = AnimationController(
       duration: const Duration(seconds: 4),
+      vsync: this,
+    );
+    
+    _flipController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    
+    _particleController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
@@ -73,6 +110,13 @@ class _HomePageState extends State<HomePage>
 
     _fadeController.forward();
     _breathingController.repeat(reverse: true);
+    
+    // Initialize daily challenge
+    _initializeDailyChallenge();
+    
+    // Initialize emotion state
+    _selectedEmotion = 'Happy';
+    _selectedEmoji = '😀';
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!_emotionDialogShown) {
@@ -114,6 +158,9 @@ class _HomePageState extends State<HomePage>
   void dispose() {
     _fadeController.dispose();
     _breathingController.dispose();
+    _flipController.dispose();
+    _shakeController.dispose();
+    _particleController.dispose();
     super.dispose();
   }
 
@@ -866,6 +913,400 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+  // Initialize daily challenge based on current day
+  void _initializeDailyChallenge() {
+    final challenges = [
+      'Send a compliment to someone today',
+      'Write down 3 things you\'re grateful for',
+      'Smile at 5 strangers you meet',
+      'Do a random act of kindness',
+      'Share a positive memory with a friend',
+      'Take 10 deep breaths and appreciate the moment',
+      'Listen to your favorite uplifting song',
+    ];
+    
+    final dayIndex = DateTime.now().weekday - 1;
+    _currentChallenge = challenges[dayIndex % challenges.length];
+  }
+
+  // Handle Turn Frown Around action - Navigate to shooting game
+  void _handleTurnFrownAround() {
+    HapticFeedback.mediumImpact();
+    
+    setState(() {
+      _frownTurnedCount++;
+      _challengeCompleted = true;
+    });
+
+    // Navigate to shooting game
+    _navigateToShootingGame();
+  }
+
+  // Navigate to the shooting game
+  void _navigateToShootingGame() {
+    HapticFeedback.mediumImpact();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const CandyCrushGame(),
+      ),
+    );
+  }
+
+
+  // Activity 1: Flip Animation
+  void _performFlipAnimation() {
+    setState(() => _isFlipping = true);
+    _flipController.forward().then((_) {
+      _flipController.reverse().then((_) {
+        if (mounted) setState(() => _isFlipping = false);
+      });
+    });
+  }
+
+  // Activity 2: Shake Animation
+  void _performShakeAnimation() {
+    setState(() => _isShaking = true);
+    _shakeController.repeat(count: 3).then((_) {
+      _shakeController.reset();
+      if (mounted) setState(() => _isShaking = false);
+    });
+  }
+
+  // Activity 3: Particle Explosion
+  void _performParticleExplosion() {
+    setState(() => _showParticles = true);
+    _particleController.forward().then((_) {
+      _particleController.reset();
+      if (mounted) setState(() => _showParticles = false);
+    });
+  }
+
+  // Activity 4: Color Wave
+  void _performColorWave() {
+    // This will be handled in the UI with color transitions
+    HapticFeedback.selectionClick();
+    Future.delayed(const Duration(milliseconds: 100), () {
+      HapticFeedback.selectionClick();
+    });
+    Future.delayed(const Duration(milliseconds: 200), () {
+      HapticFeedback.lightImpact();
+    });
+  }
+
+  // Activity 5: Bounce Animation
+  void _performBounceAnimation() {
+    _breathingController.stop();
+    _breathingController.repeat(count: 3).then((_) {
+      _breathingController.repeat(reverse: true);
+    });
+  }
+
+  // Show Turn Frown Around success dialog
+  void _showTurnFrownAroundDialog() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Turn Frown Around',
+      barrierColor: Colors.black.withOpacity(0.3),
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return const SizedBox.shrink();
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(parent: animation, curve: Curves.elasticOut);
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Center(
+            child: Transform.scale(
+              scale: curved.value,
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 40),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withOpacity(0.9),
+                        Colors.white.withOpacity(0.8),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: kPrimary.withOpacity(0.2),
+                        blurRadius: 30,
+                        offset: const Offset(0, 15),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Success animation
+                      AnimatedBuilder(
+                        animation: _breathingController,
+                        builder: (context, _) {
+                          return Transform.scale(
+                            scale: 1.0 + (_breathingController.value * 0.1),
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [kPrimary, kSecondary],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: kPrimary.withOpacity(0.3),
+                                    blurRadius: 20,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.sentiment_very_satisfied,
+                                color: Colors.white,
+                                size: 40,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        '🎉 Frown Turned Around!',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1C1C1E),
+                          letterSpacing: -0.3,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'You\'ve turned $_frownTurnedCount frowns around today!',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF8E8E93),
+                          letterSpacing: -0.1,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Today\'s Challenge: $_currentChallenge',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: kPrimary,
+                          letterSpacing: -0.1,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          Navigator.of(context).pop();
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [kPrimary, kSecondary],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: kPrimary.withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            'Keep Going! 💪',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Build enhanced Turn Frown Around card content - Always shows Smile Catcher Game
+  Widget _buildTurnFrownAroundContent(Map<String, dynamic> tip, double iconSize, double iconInnerSize, double titleFontSize, double descriptionFontSize, double spacingBetween) {
+    
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Game icon with progress counter
+          Row(
+            children: [
+              AnimatedBuilder(
+                animation: _breathingController,
+                builder: (context, _) {
+                  return Transform.scale(
+                    scale: 1.0 + (_breathingController.value * 0.08),
+                    child: Container(
+                      width: iconSize,
+                      height: iconSize,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            (tip['color'] as Color).withOpacity(0.4),
+                            (tip['color'] as Color).withOpacity(0.2),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (tip['color'] as Color).withOpacity(0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.videogame_asset,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const Spacer(),
+              // Progress counter
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      (tip['color'] as Color).withOpacity(0.2),
+                      (tip['color'] as Color).withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$_frownTurnedCount',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: tip['color'] as Color,
+                    letterSpacing: -0.1,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: spacingBetween.clamp(4.0, 8.0)),
+          
+          // Title with completion indicator
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  tip['title'] as String,
+                  style: TextStyle(
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1C1C1E),
+                    letterSpacing: -0.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (_challengeCompleted) ...[
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.check_circle,
+                  size: 16,
+                  color: Colors.green.shade600,
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 2),
+          
+          // Game description
+          Expanded(
+            child: Text(
+              'Play Smile Catcher Game! 🎮',
+              style: TextStyle(
+                fontSize: (descriptionFontSize - 1).clamp(10.0, 14.0),
+                fontWeight: FontWeight.w500,
+                color: (tip['color'] as Color),
+                letterSpacing: -0.1,
+                height: 1.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          
+          // Action button
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  (tip['color'] as Color).withOpacity(0.15),
+                  (tip['color'] as Color).withOpacity(0.08),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: (tip['color'] as Color).withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: const Text(
+              'Tap to Play! 🎮',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF4A6FA5),
+                letterSpacing: 0.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   Widget _buildHomeContent() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -931,10 +1372,6 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  // State variables for content
-  String _selectedEmotion = 'Happy';
-  String _selectedEmoji = '😀';
-  
   Widget _buildDailyEmotionStatus() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
@@ -1306,6 +1743,9 @@ class _HomePageState extends State<HomePage>
                           Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const MindfulBreathingPage()),
                           );
+                        } else if ((tip['title'] as String) == 'Turn Frowns Around') {
+                          // Handle Turn Frown Around action
+                          _handleTurnFrownAround();
                         } else {
                           // Show encouraging message for other tips
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -1356,74 +1796,76 @@ class _HomePageState extends State<HomePage>
                                 ),
                               ],
                             ),
-                            child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              AnimatedBuilder(
-                                animation: _breathingController,
-                                builder: (context, _) {
-                                  return Transform.scale(
-                                    scale: 1.0 + (_breathingController.value * 0.05),
-                                    child: Container(
-                                      width: iconSize,
-                                      height: iconSize,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            (tip['color'] as Color).withOpacity(0.2),
-                                            (tip['color'] as Color).withOpacity(0.1),
-                                          ],
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: (tip['color'] as Color).withOpacity(0.2),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
+                            child: (tip['title'] as String) == 'Turn Frowns Around'
+                                ? _buildTurnFrownAroundContent(tip, iconSize, iconInnerSize, titleFontSize, descriptionFontSize, spacingBetween)
+                                : Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      AnimatedBuilder(
+                                        animation: _breathingController,
+                                        builder: (context, _) {
+                                          return Transform.scale(
+                                            scale: 1.0 + (_breathingController.value * 0.05),
+                                            child: Container(
+                                              width: iconSize,
+                                              height: iconSize,
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    (tip['color'] as Color).withOpacity(0.2),
+                                                    (tip['color'] as Color).withOpacity(0.1),
+                                                  ],
+                                                ),
+                                                borderRadius: BorderRadius.circular(12),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: (tip['color'] as Color).withOpacity(0.2),
+                                                    blurRadius: 8,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Icon(
+                                                tip['icon'] as IconData,
+                                                color: tip['color'] as Color,
+                                                size: iconInnerSize,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      SizedBox(height: spacingBetween),
+                                      Flexible(
+                                        child: Text(
+                                          tip['title'] as String,
+                                          style: TextStyle(
+                                            fontSize: titleFontSize,
+                                            fontWeight: FontWeight.w700,
+                                            color: const Color(0xFF1C1C1E),
+                                            letterSpacing: -0.2,
                                           ),
-                                        ],
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                      child: Icon(
-                                        tip['icon'] as IconData,
-                                        color: tip['color'] as Color,
-                                        size: iconInnerSize,
+                                      const SizedBox(height: 6),
+                                      Flexible(
+                                        child: Text(
+                                          tip['description'] as String,
+                                          style: TextStyle(
+                                            fontSize: descriptionFontSize,
+                                            fontWeight: FontWeight.w400,
+                                            color: const Color(0xFF8E8E93),
+                                            letterSpacing: -0.1,
+                                            height: 1.3,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              SizedBox(height: spacingBetween),
-                              Flexible(
-                                child: Text(
-                                  tip['title'] as String,
-                                  style: TextStyle(
-                                    fontSize: titleFontSize,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF1C1C1E),
-                                    letterSpacing: -0.2,
+                                    ],
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Flexible(
-                                child: Text(
-                                  tip['description'] as String,
-                                  style: TextStyle(
-                                    fontSize: descriptionFontSize,
-                                    fontWeight: FontWeight.w400,
-                                    color: const Color(0xFF8E8E93),
-                                    letterSpacing: -0.1,
-                                    height: 1.3,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
                       ),
                     ),
@@ -3910,3 +4352,70 @@ class _DonutPainter extends CustomPainter {
     return oldDelegate.progress != progress;
   }
 }
+
+// Particle Painter for sparkle burst effect
+class ParticlePainter extends CustomPainter {
+  final double animationValue;
+  
+  ParticlePainter(this.animationValue);
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.fill;
+    
+    final center = Offset(size.width / 2, size.height / 2);
+    final particleCount = 12;
+    
+    for (int i = 0; i < particleCount; i++) {
+      final angle = (i / particleCount) * 2 * 3.14159;
+      final distance = animationValue * 60; // Max distance
+      final opacity = (1 - animationValue).clamp(0.0, 1.0);
+      
+      final x = center.dx + distance * cos(angle);
+      final y = center.dy + distance * sin(angle);
+      
+      // Different colors for particles
+      final colors = [
+        const Color(0xFF4A6FA5),
+        const Color(0xFF5B7DB1),
+        const Color(0xFF6B8FC3),
+        const Color(0xFFFFD700), // Gold
+        const Color(0xFFFF69B4), // Pink
+      ];
+      
+      paint.color = colors[i % colors.length].withOpacity(opacity);
+      
+      // Draw particle as small circle
+      canvas.drawCircle(
+        Offset(x, y),
+        4 * (1 - animationValue * 0.5), // Shrinking size
+        paint,
+      );
+      
+      // Draw sparkle effect
+      if (animationValue < 0.7) {
+        final sparkleSize = 8 * (1 - animationValue);
+        paint.color = Colors.white.withOpacity(opacity * 0.8);
+        
+        // Draw cross sparkle
+        canvas.drawLine(
+          Offset(x - sparkleSize / 2, y),
+          Offset(x + sparkleSize / 2, y),
+          paint..strokeWidth = 2,
+        );
+        canvas.drawLine(
+          Offset(x, y - sparkleSize / 2),
+          Offset(x, y + sparkleSize / 2),
+          paint..strokeWidth = 2,
+        );
+      }
+    }
+  }
+  
+  @override
+  bool shouldRepaint(covariant ParticlePainter oldDelegate) {
+    return oldDelegate.animationValue != animationValue;
+  }
+}
+
