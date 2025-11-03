@@ -52,12 +52,13 @@ class _PlanSelectionPageState extends State<PlanSelectionPage> {
       if (mounted) {
         setState(() => _isLoading = false);
         
-        // Navigate to home page
+        // Navigate to home page with user name
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
             builder: (context) => HomePage(
               planType: planType,
+              userName: widget.userData?.userName,
             ),
           ),
           (route) => false, // Remove all previous routes

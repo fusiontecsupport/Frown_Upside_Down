@@ -38,16 +38,19 @@ class UserModel {
 
   // Create from JSON response
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    // Handle nested response - check for 'data' first (login API), then 'user', then root
+    final userData = json['data'] ?? json['user'] ?? json;
+    
     return UserModel(
-      id: json['id'] as int?,
-      userName: json['User_Name'] as String? ?? '',
-      dob: json['Dob'] as String? ?? '',
-      email: json['Email'] as String? ?? '',
-      password: json['Password'] as String? ?? '',
-      confirmPassword: json['Confirm_Password'] as String? ?? '',
-      createdAt: json['Created_at'] as String?,
-      planType: json['Plan_Type'] as String?,
-      updatedAt: json['Updated_at'] as String?,
+      id: userData['id'] as int?,
+      userName: (userData['User_Name'] ?? userData['user_name'] ?? userData['name'] ?? '').toString(),
+      dob: (userData['Dob'] ?? userData['dob'] ?? '').toString(),
+      email: (userData['Email'] ?? userData['email'] ?? '').toString(),
+      password: (userData['Password'] ?? userData['password'] ?? '').toString(),
+      confirmPassword: (userData['Confirm_Password'] ?? userData['confirm_password'] ?? '').toString(),
+      createdAt: userData['Created_at'] as String? ?? userData['created_at'] as String?,
+      planType: (userData['Plan_Type'] ?? userData['plan_type']).toString(),
+      updatedAt: userData['Updated_at'] as String? ?? userData['updated_at'] as String?,
     );
   }
 

@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'register_page.dart';
 import 'home_page.dart';
+import '../services/api_service.dart';
+import '../models/user_model.dart';
 
 /// Clean, basic login page with iOS-style social buttons
 class LoginPage extends StatefulWidget {
@@ -133,28 +135,41 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       _errorMessage = null; // Clear any previous error
     });
     HapticFeedback.lightImpact();
-      
-      await Future.delayed(const Duration(seconds: 2));
-      
-      final usernameOrEmail = _emailController.text.trim();
+    
+    try {
+      final email = _emailController.text.trim();
       final password = _passwordController.text;
 
-      if (usernameOrEmail == 'admin' && password == '123456') {
+      // Call login API
+      final user = await ApiService.login(email, password);
+      
+      if (mounted) {
         setState(() => _isLoading = false);
-        // Navigate to HomePage with a default plan type
-        if (!mounted) return;
+        
+        // Navigate to HomePage with user data
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const HomePage(planType: 'lifetime'),
+            builder: (context) => HomePage(
+              planType: user.planType ?? 'trial',
+              userName: user.userName,
+            ),
           ),
         );
-      } else {
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Invalid credentials';
+          // Extract error message
+          if (e.toString().contains('Exception:')) {
+            _errorMessage = e.toString().replaceFirst('Exception: ', '');
+          } else {
+            _errorMessage = 'Login failed: ${e.toString()}';
+          }
         });
       }
+    }
   }
 
   void _handleSocialLogin(String provider) {

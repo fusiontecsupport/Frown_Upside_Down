@@ -16,8 +16,9 @@ import 'candy_crush_game.dart';
 
 class HomePage extends StatefulWidget {
   final String planType;
+  final String? userName;
   
-  const HomePage({Key? key, required this.planType}) : super(key: key);
+  const HomePage({Key? key, required this.planType, this.userName}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -1611,9 +1612,9 @@ class _HomePageState extends State<HomePage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Welcome back, Admin!',
-                      style: TextStyle(
+                    Text(
+                      'Welcome back, ${widget.userName ?? 'User'}!',
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1C1C1E),
