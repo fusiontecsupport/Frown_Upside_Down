@@ -29,6 +29,70 @@ class ApiService {
       throw Exception('Network error: ${e.toString()}');
     }
   }
+
+  /// Fetch emotions with ids (for selection leading to sub-emotions)
+  /// Returns a list of maps: { 'id': int, 'name': String }
+  static Future<List<Map<String, dynamic>>> fetchEmotionItems({required String email, required String password}) async {
+    try {
+      final url = Uri.parse('$baseUrl/emotions/api/emotions/?Email=$email&Password=$password');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        if (jsonResponse is Map<String, dynamic> && jsonResponse['success'] == true) {
+          final List results = jsonResponse['results'] as List? ?? [];
+          return results.map((e) {
+            final map = e as Map<String, dynamic>;
+            final int? id = map['id'] is int ? map['id'] as int : int.tryParse(map['id']?.toString() ?? '');
+            final String name = (map['emotion_name'] ?? map['name'] ?? '').toString();
+            return {
+              'id': id ?? -1,
+              'name': name,
+            };
+          }).where((m) => (m['id'] as int) != -1 && (m['name'] as String).isNotEmpty).toList();
+        }
+        return [];
+      } else {
+        throw Exception('Failed to fetch emotions: HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  /// Fetch sub-emotions for a selected emotion id
+  /// Returns a list of maps: { 'id': int, 'name': String }
+  static Future<List<Map<String, dynamic>>> fetchSubEmotions({
+    required String email,
+    required String password,
+    required int emotionId,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/emotions/api/sub-emotions/?Email=$email&Password=$password&emotion_id=$emotionId');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        if (jsonResponse is Map<String, dynamic> && jsonResponse['success'] == true) {
+          final List results = jsonResponse['results'] as List? ?? [];
+          return results.map((e) {
+            final map = e as Map<String, dynamic>;
+            final int? id = map['id'] is int ? map['id'] as int : int.tryParse(map['id']?.toString() ?? '');
+            final String name = (map['sub_emotion_name'] ?? map['name'] ?? map['emotion_name'] ?? '').toString();
+            return {
+              'id': id ?? -1,
+              'name': name,
+            };
+          }).where((m) => (m['id'] as int) != -1 && (m['name'] as String).isNotEmpty).toList();
+        }
+        return [];
+      } else {
+        throw Exception('Failed to fetch sub-emotions: HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
   
   /// Create a new user
   /// Returns the created user model or throws an exception

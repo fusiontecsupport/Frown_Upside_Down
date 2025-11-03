@@ -164,6 +164,149 @@ class _HomePageState extends State<HomePage>
     });
   }
 
+  Future<void> _openSubEmotionDialog(int emotionId) async {
+    await showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Sub Emotions',
+      barrierColor: Colors.black.withOpacity(0.3),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return const SizedBox.shrink();
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Opacity(
+            opacity: curved.value,
+            child: Transform.scale(
+              scale: 0.94 + 0.06 * curved.value,
+              child: Center(
+                child: Material(
+                  color: Colors.transparent,
+                  child: Dialog(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.6,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Text(
+                              'Select a sub emotion',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1C1C1E),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            FutureBuilder<List<Map<String, dynamic>>>(
+                              future: ApiService.fetchSubEmotions(
+                                email: 'logesh2528@gmail.com',
+                                password: '12345678',
+                                emotionId: emotionId,
+                              ),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                    child: Center(child: CircularProgressIndicator()),
+                                  );
+                                }
+                                if (snapshot.hasError) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    child: Text(
+                                      'Failed to load sub emotions',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: const Color(0xFF8E8E93),
+                                      ),
+                                    ),
+                                  );
+                                }
+                                final items = snapshot.data ?? const <Map<String, dynamic>>[];
+                                if (items.isEmpty) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    child: Text(
+                                      'No sub emotions found',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: const Color(0xFF8E8E93),
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return SingleChildScrollView(
+                                  child: Wrap(
+                                    alignment: WrapAlignment.center,
+                                    spacing: 10,
+                                    runSpacing: 10,
+                                    children: items.map((map) {
+                                      final String label = (map['name'] ?? '').toString();
+                                      return GestureDetector(
+                                        onTap: () {
+                                          HapticFeedback.lightImpact();
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.white.withOpacity(0.3),
+                                                Colors.white.withOpacity(0.2),
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(22),
+                                            border: Border.all(
+                                              color: kPrimary.withOpacity(0.15),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            label,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF1C1C1E),
+                                              letterSpacing: -0.1,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _fadeController.dispose();
@@ -410,9 +553,9 @@ class _HomePageState extends State<HomePage>
                                         ),
                                       ),
                                       const SizedBox(height: 20),
-                                      // Regular emotion options from API
-                                      FutureBuilder<List<String>>(
-                                        future: ApiService.fetchEmotions(
+                                      // Regular emotion options from API (with IDs)
+                                      FutureBuilder<List<Map<String, dynamic>>>(
+                                        future: ApiService.fetchEmotionItems(
                                           email: 'logesh2528@gmail.com',
                                           password: '12345678',
                                         ),
@@ -436,8 +579,8 @@ class _HomePageState extends State<HomePage>
                                               ),
                                             );
                                           }
-                                          final emotions = snapshot.data ?? const <String>[];
-                                          if (emotions.isEmpty) {
+                                          final items = snapshot.data ?? const <Map<String, dynamic>>[];
+                                          if (items.isEmpty) {
                                             return Padding(
                                               padding: const EdgeInsets.symmetric(vertical: 12),
                                               child: Text(
@@ -454,9 +597,11 @@ class _HomePageState extends State<HomePage>
                                             alignment: WrapAlignment.center,
                                             spacing: 10,
                                             runSpacing: 10,
-                                            children: emotions.asMap().entries.map((entry) {
+                                            children: items.asMap().entries.map((entry) {
                                               final index = entry.key;
-                                              final label = entry.value;
+                                              final map = entry.value;
+                                              final String label = (map['name'] ?? '').toString();
+                                              final int emotionId = (map['id'] ?? -1) as int;
                                               final isSelected = selected == label;
                                               final base = (curved.value - index * 0.05).clamp(0.0, 1.0);
                                               final dy = (1.0 - base) * 8.0;
@@ -468,9 +613,11 @@ class _HomePageState extends State<HomePage>
                                                     onTap: () async {
                                                       HapticFeedback.lightImpact();
                                                       setState(() => selected = label);
-                                                      Future.delayed(const Duration(milliseconds: 150), () {
+                                                      await Future.delayed(const Duration(milliseconds: 150));
+                                                      await _openSubEmotionDialog(emotionId);
+                                                      if (mounted) {
                                                         Navigator.of(context).pop(label);
-                                                      });
+                                                      }
                                                     },
                                                     child: AnimatedScale(
                                                       duration: const Duration(milliseconds: 140),
@@ -638,6 +785,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<String?> _openNestedEmotionDialog() async {
+    // Retained legacy nested dialog (not used for API-driven sub-emotions)
     return showGeneralDialog<String>(
       context: context,
       barrierDismissible: false,
