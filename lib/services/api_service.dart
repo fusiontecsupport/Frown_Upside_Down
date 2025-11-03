@@ -5,6 +5,31 @@ import '../models/user_model.dart';
 class ApiService {
   static const String baseUrl = 'http://localhost:8000';
   
+  /// Fetch emotions for a given user (by email and password)
+  /// Returns a list of emotion names
+  static Future<List<String>> fetchEmotions({required String email, required String password}) async {
+    try {
+      final url = Uri.parse('$baseUrl/emotions/api/emotions/?Email=$email&Password=$password');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        if (jsonResponse is Map<String, dynamic> && jsonResponse['success'] == true) {
+          final List results = jsonResponse['results'] as List? ?? [];
+          return results
+              .map((e) => (e as Map<String, dynamic>)['emotion_name']?.toString() ?? '')
+              .where((name) => name.isNotEmpty)
+              .toList();
+        }
+        return [];
+      } else {
+        throw Exception('Failed to fetch emotions: HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+  
   /// Create a new user
   /// Returns the created user model or throws an exception
   static Future<UserModel> createUser(UserModel user) async {

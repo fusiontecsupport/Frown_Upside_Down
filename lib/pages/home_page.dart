@@ -13,6 +13,7 @@ import 'smile_animation_page.dart';
 import 'relax_animation_page.dart';
 import 'mindful_breathing_page.dart';
 import 'candy_crush_game.dart';
+import '../services/api_service.dart';
 
 class HomePage extends StatefulWidget {
   final String planType;
@@ -124,8 +125,8 @@ class _HomePageState extends State<HomePage>
     _initializeDailyChallenge();
     
     // Initialize emotion state
-    _selectedEmotion = 'Happy';
-    _selectedEmoji = '😀';
+    _selectedEmotion = '';
+    _selectedEmoji = '';
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!_emotionDialogShown) {
@@ -305,14 +306,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<String?> _openEmotionDialog() async {
-    final options = [
-      {'label': 'Happy', 'emoji': '😀'},
-      {'label': 'Sad', 'emoji': '😢'},
-      {'label': 'Disappointed', 'emoji': '😞'},
-      {'label': 'Stressed', 'emoji': '😣'},
-      {'label': 'Nervous', 'emoji': '😬'},
-      {'label': 'Calm', 'emoji': '😌'},
-    ];
+    final options = [];
 
     return showGeneralDialog<String>(
       context: context,
@@ -416,73 +410,103 @@ class _HomePageState extends State<HomePage>
                                         ),
                                       ),
                                       const SizedBox(height: 20),
-                                      // Regular emotion options
-                                      Wrap(
-                                        alignment: WrapAlignment.center,
-                                        spacing: 10,
-                                        runSpacing: 10,
-                                        children: options.asMap().entries.map((entry) {
-                                          final index = entry.key;
-                                          final opt = entry.value;
-                                          final isSelected = selected == opt['label'];
-                                          final base = (curved.value - index * 0.05).clamp(0.0, 1.0);
-                                          final dy = (1.0 - base) * 8.0;
-                                          
-                                          return Opacity(
-                                            opacity: base,
-                                            child: Transform.translate(
-                                              offset: Offset(0, dy),
-                                              child: GestureDetector(
-                                                onTap: () async {
-                                                  HapticFeedback.lightImpact();
-                                                  setState(() => selected = opt['label'] as String);
-                                                  Future.delayed(const Duration(milliseconds: 150), () {
-                                                    Navigator.of(context).pop(opt['label']);
-                                                  });
-                                                },
-                                                child: AnimatedScale(
-                                                  duration: const Duration(milliseconds: 140),
-                                                  scale: isSelected ? 1.02 : 1.0,
-                                                  child: Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                                    decoration: BoxDecoration(
-                                                      gradient: isSelected
-                                                          ? LinearGradient(
-                                                              colors: [kSecondary, kPrimary],
-                                                            )
-                                                          : LinearGradient(
-                                                              colors: [
-                                                                Colors.white.withOpacity(0.3),
-                                                                Colors.white.withOpacity(0.2),
-                                                              ],
-                                                            ),
-                                                      borderRadius: BorderRadius.circular(22),
-                                                      border: Border.all(
-                                                        color: isSelected 
-                                                            ? Colors.transparent 
-                                                            : kPrimary.withOpacity(0.15),
-                                                        width: 1,
-                                                      ),
-                                                      boxShadow: isSelected
-                                                          ? [
-                                                              BoxShadow(
-                                                                color: kSecondary.withOpacity(0.3),
-                                                                blurRadius: 12,
-                                                                offset: const Offset(0, 6),
-                                                              ),
-                                                            ]
-                                                          : null,
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        Text(
-                                                          opt['emoji'] as String,
-                                                          style: const TextStyle(fontSize: 18),
+                                      // Regular emotion options from API
+                                      FutureBuilder<List<String>>(
+                                        future: ApiService.fetchEmotions(
+                                          email: 'logesh2528@gmail.com',
+                                          password: '12345678',
+                                        ),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState == ConnectionState.waiting) {
+                                            return const Padding(
+                                              padding: EdgeInsets.symmetric(vertical: 20),
+                                              child: Center(child: CircularProgressIndicator()),
+                                            );
+                                          }
+                                          if (snapshot.hasError) {
+                                            return Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 12),
+                                              child: Text(
+                                                'Failed to load emotions',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: const Color(0xFF8E8E93),
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                          final emotions = snapshot.data ?? const <String>[];
+                                          if (emotions.isEmpty) {
+                                            return Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 12),
+                                              child: Text(
+                                                'No emotions found',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: const Color(0xFF8E8E93),
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                          return Wrap(
+                                            alignment: WrapAlignment.center,
+                                            spacing: 10,
+                                            runSpacing: 10,
+                                            children: emotions.asMap().entries.map((entry) {
+                                              final index = entry.key;
+                                              final label = entry.value;
+                                              final isSelected = selected == label;
+                                              final base = (curved.value - index * 0.05).clamp(0.0, 1.0);
+                                              final dy = (1.0 - base) * 8.0;
+                                              return Opacity(
+                                                opacity: base,
+                                                child: Transform.translate(
+                                                  offset: Offset(0, dy),
+                                                  child: GestureDetector(
+                                                    onTap: () async {
+                                                      HapticFeedback.lightImpact();
+                                                      setState(() => selected = label);
+                                                      Future.delayed(const Duration(milliseconds: 150), () {
+                                                        Navigator.of(context).pop(label);
+                                                      });
+                                                    },
+                                                    child: AnimatedScale(
+                                                      duration: const Duration(milliseconds: 140),
+                                                      scale: isSelected ? 1.02 : 1.0,
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                                        decoration: BoxDecoration(
+                                                          gradient: isSelected
+                                                              ? LinearGradient(
+                                                                  colors: [kSecondary, kPrimary],
+                                                                )
+                                                              : LinearGradient(
+                                                                  colors: [
+                                                                    Colors.white.withOpacity(0.3),
+                                                                    Colors.white.withOpacity(0.2),
+                                                                  ],
+                                                                ),
+                                                          borderRadius: BorderRadius.circular(22),
+                                                          border: Border.all(
+                                                            color: isSelected 
+                                                                ? Colors.transparent 
+                                                                : kPrimary.withOpacity(0.15),
+                                                            width: 1,
+                                                          ),
+                                                          boxShadow: isSelected
+                                                              ? [
+                                                                  BoxShadow(
+                                                                    color: kSecondary.withOpacity(0.3),
+                                                                    blurRadius: 12,
+                                                                    offset: const Offset(0, 6),
+                                                                  ),
+                                                                ]
+                                                              : null,
                                                         ),
-                                                        const SizedBox(width: 8),
-                                                        Text(
-                                                          opt['label'] as String,
+                                                        child: Text(
+                                                          label,
                                                           style: TextStyle(
                                                             fontSize: 13,
                                                             fontWeight: FontWeight.w600,
@@ -490,14 +514,14 @@ class _HomePageState extends State<HomePage>
                                                             letterSpacing: -0.1,
                                                           ),
                                                         ),
-                                                      ],
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                            ),
+                                              );
+                                            }).toList(),
                                           );
-                                        }).toList(),
+                                        },
                                       ),
                                       
                                       const SizedBox(height: 20),
@@ -625,14 +649,7 @@ class _HomePageState extends State<HomePage>
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         String selected = '';
-        final options = [
-          {'label': 'Happy', 'emoji': '😀'},
-          {'label': 'Sad', 'emoji': '😢'},
-          {'label': 'Disappointed', 'emoji': '😞'},
-          {'label': 'Stressed', 'emoji': '😣'},
-          {'label': 'Nervous', 'emoji': '😬'},
-          {'label': 'Calm', 'emoji': '😌'},
-        ];
+        final options = [];
         final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
