@@ -153,6 +153,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             builder: (context) => HomePage(
               planType: user.planType ?? 'trial',
               userName: user.userName,
+              email: user.email,
+              createdAt: user.createdAt,
             ),
           ),
         );

@@ -17,8 +17,16 @@ import 'candy_crush_game.dart';
 class HomePage extends StatefulWidget {
   final String planType;
   final String? userName;
+  final String? email;
+  final String? createdAt;
   
-  const HomePage({Key? key, required this.planType, this.userName}) : super(key: key);
+  const HomePage({
+    Key? key, 
+    required this.planType, 
+    this.userName,
+    this.email,
+    this.createdAt,
+  }) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -4084,7 +4092,12 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildProfileContent() {
-    return ProfilePage(planType: widget.planType);
+    return ProfilePage(
+      planType: widget.planType,
+      userName: widget.userName,
+      email: widget.email,
+      createdAt: widget.createdAt,
+    );
   }
 
   Widget _buildBottomNavBar() {

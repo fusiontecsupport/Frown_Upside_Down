@@ -8,8 +8,17 @@ import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
   final String planType;
+  final String? userName;
+  final String? email;
+  final String? createdAt;
   
-  const ProfilePage({Key? key, required this.planType}) : super(key: key);
+  const ProfilePage({
+    Key? key, 
+    required this.planType,
+    this.userName,
+    this.email,
+    this.createdAt,
+  }) : super(key: key);
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -238,8 +247,24 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
     );
   }
 
+  String _formatMemberSince(String? createdAt) {
+    if (createdAt == null || createdAt.isEmpty) {
+      return 'Member';
+    }
+    
+    try {
+      // Parse ISO8601 date string (e.g., "2025-11-03T06:03:02+00:00")
+      final dateTime = DateTime.parse(createdAt);
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return 'Member since ${months[dateTime.month - 1]} ${dateTime.year}';
+    } catch (e) {
+      return 'Member';
+    }
+  }
+
   Widget _buildProfileHeader() {
-    final isLifetime = widget.planType == 'lifetime';
+    final isPremium = widget.planType == 'lifetime' || widget.planType == 'premium';
     
     return Column(
       children: [
@@ -330,10 +355,10 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                 children: [
                   Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Jane Doe',
-                          style: TextStyle(
+                          widget.userName ?? 'User',
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF1C1C1E),
@@ -345,7 +370,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: isLifetime 
+                            colors: isPremium 
                                 ? [kSecondary, kPrimary]
                                 : [kPrimary, kAccent],
                           ),
@@ -355,13 +380,13 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              isLifetime ? Icons.diamond : Icons.schedule,
+                              isPremium ? Icons.diamond : Icons.schedule,
                               color: Colors.white,
                               size: 12,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              isLifetime ? 'LIFETIME' : 'FREE TRIAL',
+                              isPremium ? 'PREMIUM' : 'TRIAL',
                               style: const TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
@@ -376,7 +401,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'jane.doe@mindful.com',
+                    widget.email ?? 'No email',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
@@ -392,7 +417,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      'Member since Oct 2024',
+                      _formatMemberSince(widget.createdAt),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -411,7 +436,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   }
 
   Widget _buildSubscriptionCard() {
-    final isLifetime = widget.planType == 'lifetime';
+    final isPremium = widget.planType == 'lifetime' || widget.planType == 'premium';
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -419,7 +444,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
         gradient: LinearGradient(
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
-          colors: isLifetime 
+          colors: isPremium 
               ? [kSecondary, kPrimary]
               : [kPrimary, kAccent],
         ),
@@ -445,7 +470,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    isLifetime ? 'LIFETIME MEMBER' : 'FREE TRIAL',
+                    isPremium ? 'PREMIUM MEMBER' : 'TRIAL MEMBER',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -456,7 +481,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  isLifetime ? 'Unlimited Access' : '5 Days Remaining',
+                  isPremium ? 'Unlimited Access' : 'Trial Active',
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -466,7 +491,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  isLifetime 
+                  isPremium 
                       ? 'All premium features unlocked'
                       : 'Upgrade to unlock all features',
                   style: TextStyle(
@@ -486,7 +511,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
-              isLifetime ? Icons.diamond : Icons.schedule,
+              isPremium ? Icons.diamond : Icons.schedule,
               color: Colors.white,
               size: 28,
             ),
@@ -997,8 +1022,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
 
   void _manageSubscription() {
     HapticFeedback.lightImpact();
-    final isLifetime = widget.planType == 'lifetime';
-    _showInfoDialog('Manage Subscription', isLifetime ? 'You have lifetime access to all features!' : 'Free trial with 5 days remaining. Upgrade anytime!', isLifetime ? 'Manage' : 'Upgrade');
+    final isPremium = widget.planType == 'lifetime' || widget.planType == 'premium';
+    _showInfoDialog('Manage Subscription', isPremium ? 'You have premium access to all features!' : 'Trial active. Upgrade anytime!', isPremium ? 'Manage' : 'Upgrade');
   }
 
   void _showSignOutDialog() {
