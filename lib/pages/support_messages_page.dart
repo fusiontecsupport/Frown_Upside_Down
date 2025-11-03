@@ -3,15 +3,16 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../services/api_service.dart';
 
 class SupportMessagesPage extends StatefulWidget {
   final String title;
-  final List<String> messages;
+  final int subEmotionId;
 
   const SupportMessagesPage({
     super.key,
     required this.title,
-    required this.messages,
+    required this.subEmotionId,
   });
 
   @override
@@ -23,11 +24,9 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
   late AnimationController _bgController;
   late Animation<double> _bgAnim;
   int _index = 0;
-  bool _showExplore = false;
-  bool _showIntro = true;
+  bool _loading = true;
   late AnimationController _loaderController;
-  bool _showInterstitial = false;
-  final bool _onlyLoading = false; // show messages with interstitial loader
+  List<String> _contents = const [];
 
   @override
   void initState() {
@@ -43,13 +42,7 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
       duration: const Duration(milliseconds: 1200),
     )..repeat();
 
-    Future.delayed(const Duration(milliseconds: 2200), () {
-      if (!mounted) return;
-      setState(() {
-        _showIntro = false;
-      });
-      _loaderController.stop();
-    });
+    _fetchContents();
   }
 
   @override
@@ -59,39 +52,34 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
     super.dispose();
   }
 
+  Future<void> _fetchContents() async {
+    try {
+      final items = await ApiService.fetchSubEmotionContents(
+        email: 'logesh2528@gmail.com',
+        password: '12345678',
+        subEmotionId: widget.subEmotionId,
+      );
+      if (!mounted) return;
+      setState(() {
+        _contents = items;
+        _loading = false;
+      });
+      _loaderController.stop();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _contents = const [];
+        _loading = false;
+      });
+      _loaderController.stop();
+    }
+  }
+
   void _onAdvance() {
     HapticFeedback.lightImpact();
-    // Intro: skip to messages
-    if (_showIntro) {
-      setState(() => _showIntro = false);
-      _loaderController.stop();
-      return;
-    }
-    // If interstitial is showing, skip and go to next immediately
-    if (_showInterstitial) {
-      if (_index < widget.messages.length - 1) {
-        setState(() {
-          _showInterstitial = false;
-          _index++;
-        });
-      }
-      return;
-    }
-    // Otherwise show interstitial then advance
-    if (_index < widget.messages.length - 1) {
-      setState(() => _showInterstitial = true);
-      _loaderController.repeat();
-      Future.delayed(const Duration(milliseconds: 900), () {
-        if (!mounted) return;
-        if (_showInterstitial) {
-          setState(() {
-            _showInterstitial = false;
-            _index++;
-          });
-        }
-      });
-    } else {
-      setState(() => _showExplore = true);
+    if (_loading || _contents.isEmpty) return;
+    if (_index < _contents.length - 1) {
+      setState(() => _index++);
     }
   }
 
@@ -463,7 +451,7 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
           // Content
           SafeArea(
             child: GestureDetector(
-              onTap: null,
+              onTap: _onAdvance,
               behavior: HitTestBehavior.opaque,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -509,7 +497,7 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
 
                     const SizedBox(height: 28),
 
-                    // Glass card shell (design only, no content)
+                    // Glass card shell with content
                     Expanded(
                       child: Center(
                         child: ClipRRect(
@@ -539,7 +527,25 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
                                   ),
                                 ],
                               ),
-                              child: const SizedBox(height: 220),
+                              child: SizedBox(
+                                height: 220,
+                                child: Center(
+                                  child: _loading
+                                      ? _buildStandaloneLoader(themeBlue)
+                                      : (_contents.isEmpty
+                                          ? Text(
+                                              'No content available',
+                                              style: TextStyle(
+                                                color: const Color(0xFF2C4A7C).withOpacity(0.7),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            )
+                                          : _MessageView(
+                                              key: ValueKey(_index),
+                                              text: _contents[_index],
+                                            )),
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -548,12 +554,26 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
 
                     const SizedBox(height: 16),
 
-                    // Progress dots removed (design only)
-                    const SizedBox.shrink(),
+                    // Progress dots
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(_contents.isEmpty ? 1 : _contents.length, (i) {
+                        final active = i == _index;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          margin: const EdgeInsets.symmetric(horizontal: 5),
+                          width: active ? 18 : 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: active ? themeBlue : themeBlue.withOpacity(0.25),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        );
+                      }),
+                    ),
 
                     const SizedBox(height: 20),
 
-                    // Explore button removed (design only)
                     const SizedBox.shrink(),
                   ],
                 ),

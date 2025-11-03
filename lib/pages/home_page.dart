@@ -292,11 +292,11 @@ class _HomePageState extends State<HomePage>
                                     runSpacing: 10,
                                     children: items.map((map) {
                                       final String label = (map['name'] ?? '').toString();
+                                      final int subEmotionId = (map['id'] ?? -1) as int;
                                       return GestureDetector(
                                         onTap: () async {
                                           HapticFeedback.lightImpact();
                                           final title = label;
-                                          final messages = _buildSupportMessagesFor(title);
                                           final parentContext = this.context; // use page context, not dialog context
                                           Navigator.of(context).pop(); // close sub-emotion dialog
                                           // Push after the dialog closes using the parent page context
@@ -306,7 +306,7 @@ class _HomePageState extends State<HomePage>
                                               MaterialPageRoute(
                                                 builder: (context) => SupportMessagesPage(
                                                   title: title,
-                                                  messages: messages,
+                                                  subEmotionId: subEmotionId,
                                                 ),
                                               ),
                                             );

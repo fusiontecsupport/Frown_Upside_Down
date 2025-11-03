@@ -94,6 +94,36 @@ class ApiService {
     }
   }
   
+  /// Fetch contents for a selected sub-emotion id
+  /// Endpoint: /emotions/api/contents/?Email=...&Password=...&sub_emotion_id=ID
+  /// Returns a list of strings (content)
+  static Future<List<String>> fetchSubEmotionContents({
+    required String email,
+    required String password,
+    required int subEmotionId,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/emotions/api/contents/?Email=$email&Password=$password&sub_emotion_id=$subEmotionId');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        if (jsonResponse is Map<String, dynamic> && jsonResponse['success'] == true) {
+          final List results = jsonResponse['results'] as List? ?? [];
+          return results.map((e) {
+            final map = e as Map<String, dynamic>;
+            return (map['content'] ?? '').toString();
+          }).where((s) => s.isNotEmpty).toList();
+        }
+        return [];
+      } else {
+        throw Exception('Failed to fetch contents: HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+  
   /// Create a new user
   /// Returns the created user model or throws an exception
   static Future<UserModel> createUser(UserModel user) async {
