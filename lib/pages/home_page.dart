@@ -1643,243 +1643,179 @@ class _HomePageState extends State<HomePage>
   Widget _buildWellnessTips() {
     final tips = [
       {
-        'title': 'Turn Frowns Around',
-        'description': 'Transform negative thoughts into positive ones',
-        'icon': Icons.sentiment_very_satisfied,
-        'color': const Color(0xFF4A6FA5), // App primary color
+        'emoji': '🎮',
+        'title': 'Smile Catcher',
+        'desc': 'Play & boost mood',
+        'action': 'game',
       },
       {
-        'title': 'Mindful Breathing',
-        'description': 'Take 5 deep breaths to center yourself',
-        'icon': Icons.air,
-        'color': const Color(0xFF5B7DB1), // App secondary color
+        'emoji': '🧘',
+        'title': 'Breathe Deeply',
+        'desc': '5 slow breaths',
+        'action': 'breathing',
       },
       {
-        'title': 'Spread Joy',
-        'description': 'Share a smile and brighten someone\'s day',
-        'icon': Icons.favorite,
-        'color': const Color(0xFF6B8FC3), // App accent color
+        'emoji': '😊',
+        'title': 'Share a Smile',
+        'desc': 'Brighten someone\'s day',
+        'action': 'smile',
       },
     ];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final screenWidth = MediaQuery.of(context).size.width;
-        final isSmallScreen = screenWidth < 360;
-        
-        // Responsive dimensions
-        final cardHeight = isSmallScreen ? 130.0 : 150.0;
-        final cardWidth = isSmallScreen ? 160.0 : 180.0;
-        final cardPadding = isSmallScreen ? 14.0 : 16.0;
-        final iconSize = isSmallScreen ? 36.0 : 42.0;
-        final iconInnerSize = isSmallScreen ? 20.0 : 22.0;
-        final titleFontSize = isSmallScreen ? 13.0 : 14.0;
-        final descriptionFontSize = isSmallScreen ? 11.0 : 12.0;
-        final headerFontSize = isSmallScreen ? 16.0 : 18.0;
-        final spacingBetween = isSmallScreen ? 10.0 : 12.0;
-        
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmall = screenWidth < 360;
+    final cardW = isSmall ? 136.0 : 148.0;
+    final cardH = isSmall ? 76.0 : 84.0;
+    final emojiSize = isSmall ? 28.0 : 32.0;
+    final titleSize = isSmall ? 13.0 : 14.0;
+    final descSize = isSmall ? 11.0 : 12.0;
+    final spacing = isSmall ? 8.0 : 10.0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                AnimatedBuilder(
-                  animation: _breathingController,
-                  builder: (context, _) {
-                    return Transform.scale(
-                      scale: 1.0 + (_breathingController.value * 0.08),
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [kPrimary, kSecondary],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: kPrimary.withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.psychology,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ),
-                    );
-                  },
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [kPrimary, kSecondary],
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  'Emotional Wellness Tips',
-                  style: TextStyle(
-                    fontSize: headerFontSize,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1C1C1E),
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ],
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(
+                Icons.psychology,
+                color: Colors.white,
+                size: 14,
+              ),
             ),
-            SizedBox(height: spacingBetween),
-            SizedBox(
-              height: cardHeight,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                itemCount: tips.length,
-                itemBuilder: (context, index) {
-                  final tip = tips[index];
-                  return Padding(
-                    padding: EdgeInsets.only(right: index == tips.length - 1 ? 0 : spacingBetween),
-                    child: GestureDetector(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        if ((tip['title'] as String) == 'Mindful Breathing') {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const MindfulBreathingPage()),
-                          );
-                        } else if ((tip['title'] as String) == 'Turn Frowns Around') {
-                          // Handle Turn Frown Around action
-                          _handleTurnFrownAround();
-                        } else {
-                          // Show encouraging message for other tips
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Great choice! ${tip['description']}'),
-                              backgroundColor: tip['color'] as Color,
-                              duration: const Duration(seconds: 2),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                          child: Container(
-                            width: cardWidth,
-                            padding: EdgeInsets.all(cardPadding),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.white.withOpacity(0.3),
-                                  Colors.white.withOpacity(0.2),
-                                  Colors.white.withOpacity(0.1),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.4),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (tip['color'] as Color).withOpacity(0.15),
-                                  blurRadius: 25,
-                                  offset: const Offset(0, 10),
-                                ),
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 5),
-                                ),
-                              ],
-                            ),
-                            child: (tip['title'] as String) == 'Turn Frowns Around'
-                                ? _buildTurnFrownAroundContent(tip, iconSize, iconInnerSize, titleFontSize, descriptionFontSize, spacingBetween)
-                                : Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      AnimatedBuilder(
-                                        animation: _breathingController,
-                                        builder: (context, _) {
-                                          return Transform.scale(
-                                            scale: 1.0 + (_breathingController.value * 0.05),
-                                            child: Container(
-                                              width: iconSize,
-                                              height: iconSize,
-                                              decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                  colors: [
-                                                    (tip['color'] as Color).withOpacity(0.2),
-                                                    (tip['color'] as Color).withOpacity(0.1),
-                                                  ],
-                                                ),
-                                                borderRadius: BorderRadius.circular(12),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: (tip['color'] as Color).withOpacity(0.2),
-                                                    blurRadius: 8,
-                                                    offset: const Offset(0, 2),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Icon(
-                                                tip['icon'] as IconData,
-                                                color: tip['color'] as Color,
-                                                size: iconInnerSize,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                      SizedBox(height: spacingBetween),
-                                      Flexible(
-                                        child: Text(
-                                          tip['title'] as String,
-                                          style: TextStyle(
-                                            fontSize: titleFontSize,
-                                            fontWeight: FontWeight.w700,
-                                            color: const Color(0xFF1C1C1E),
-                                            letterSpacing: -0.2,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Flexible(
-                                        child: Text(
-                                          tip['description'] as String,
-                                          style: TextStyle(
-                                            fontSize: descriptionFontSize,
-                                            fontWeight: FontWeight.w400,
-                                            color: const Color(0xFF8E8E93),
-                                            letterSpacing: -0.1,
-                                            height: 1.3,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  );
-                },
+            const SizedBox(width: 12),
+            Text(
+              'Emotional Wellness Tips',
+              style: TextStyle(
+                fontSize: isSmall ? 15 : 16,
+                fontWeight: FontWeight.w600,
+                color: kPrimary,
+                letterSpacing: -0.2,
               ),
             ),
           ],
-        );
-      },
+        ),
+        SizedBox(height: spacing),
+        SizedBox(
+          height: cardH,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: tips.length,
+            separatorBuilder: (_, __) => SizedBox(width: spacing),
+            itemBuilder: (context, i) {
+              final tip = tips[i];
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    final action = tip['action'] as String?;
+                    
+                    if (action == 'game') {
+                      // Navigate to Smile Catcher game
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CandyCrushGame()),
+                      );
+                    } else if (action == 'breathing') {
+                      // Navigate to breathing exercise
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const MindfulBreathingPage()),
+                      );
+                    } else {
+                      // Show encouraging message for other tips
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Great choice! ${tip['desc']}'),
+                          backgroundColor: kPrimary,
+                          duration: const Duration(seconds: 2),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    width: cardW,
+                    height: cardH,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withOpacity(0.9),
+                          kAccent.withOpacity(0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: kPrimary.withOpacity(0.15), width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: kPrimary.withOpacity(0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          tip['emoji']!,
+                          style: TextStyle(fontSize: emojiSize),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                tip['title']!,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: titleSize,
+                                  color: kPrimary,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                tip['desc']!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: descSize,
+                                  color: kSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
-
 
   Widget _buildWelcomeHeader() {
     // Daily inspirational quotes
