@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'home_page.dart';
 
 class SupportMessagesPage extends StatefulWidget {
   final String title;
@@ -464,7 +463,7 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
           // Content
           SafeArea(
             child: GestureDetector(
-              onTap: _showExplore ? null : _onAdvance,
+              onTap: null,
               behavior: HitTestBehavior.opaque,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -504,25 +503,16 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
                             ),
                           ),
                         ),
-                        Text(
-                          '${_index + 1}/${widget.messages.length}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF2C4A7C).withOpacity(0.7),
-                          ),
-                        ),
+                        const SizedBox.shrink(),
                       ],
                     ),
 
                     const SizedBox(height: 28),
 
-                    // Message card with glass effect (hidden while loading)
+                    // Glass card shell (design only, no content)
                     Expanded(
                       child: Center(
-                        child: (_showIntro || _showInterstitial)
-                            ? _buildStandaloneLoader(themeBlue)
-                            : ClipRRect(
+                        child: ClipRRect(
                           borderRadius: BorderRadius.circular(24),
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
@@ -549,42 +539,7 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
                                   ),
                                 ],
                               ),
-                              child: Stack(
-                                children: [
-                                  // Messages view
-                                  AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 250),
-                                    transitionBuilder: (child, anim) {
-                                      final offset = Tween<Offset>(
-                                        begin: const Offset(0.0, 0.08),
-                                        end: Offset.zero,
-                                      ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic));
-                                      return FadeTransition(
-                                        opacity: anim,
-                                        child: SlideTransition(position: offset, child: child),
-                                      );
-                                    },
-                                    child: _showIntro
-                                        ? const SizedBox.shrink()
-                                        : _MessageView(
-                                            key: ValueKey(_index),
-                                            text: widget.messages[_index],
-                                          ),
-                                  ),
-
-                                  // Funny loader overlay
-                                  if (_showIntro)
-                                    Positioned.fill(
-                                      child: Center(child: _buildStandaloneLoader(themeBlue)),
-                                    ),
-
-                                  // Interstitial loader overlay between messages
-                                  if (_showInterstitial)
-                                    Positioned.fill(
-                                      child: Center(child: _buildStandaloneLoader(themeBlue)),
-                                    ),
-                                ],
-                              ),
+                              child: const SizedBox(height: 220),
                             ),
                           ),
                         ),
@@ -593,62 +548,13 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
 
                     const SizedBox(height: 16),
 
-                    // Progress dots
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(widget.messages.length, (i) {
-                        final active = i == _index;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.symmetric(horizontal: 5),
-                          width: active ? 18 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: active ? themeBlue : themeBlue.withOpacity(0.25),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        );
-                      }),
-                    ),
+                    // Progress dots removed (design only)
+                    const SizedBox.shrink(),
 
                     const SizedBox(height: 20),
 
-                    // Explore button at the end
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      child: _showExplore
-                          ? SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  backgroundColor: themeBlue,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 6,
-                                ),
-                                onPressed: () async {
-                                  HapticFeedback.mediumImpact();
-                                  // Show follow-up dialog before going back
-                                  final response = await _showFollowUpDialog();
-                                  if (response != null && mounted) {
-                                    Navigator.of(context).pop();
-                                  }
-                                },
-                                child: const Text(
-                                  'Explore',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.6,
-                                  ),
-                                ),
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
+                    // Explore button removed (design only)
+                    const SizedBox.shrink(),
                   ],
                 ),
               ),

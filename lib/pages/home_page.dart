@@ -73,6 +73,63 @@ class _HomePageState extends State<HomePage>
   String _selectedEmotion = '';
   String _selectedEmoji = '';
 
+  List<String> _buildSupportMessagesFor(String label) {
+    final key = label.toLowerCase();
+    if (key.contains('sad') || key.contains('down')) {
+      return [
+        'It\'s okay to feel sad. You\'re not alone in this.',
+        'Take a deep breath. Small steps count today.',
+        'Reach out to someone you trust, even with a short message.',
+        'Be kind to yourself. Rest is productive too.',
+        'This feeling will pass. You\'ve made it through before.'
+      ];
+    }
+    if (key.contains('stress') || key.contains('overwhelm')) {
+      return [
+        'Pause and breathe in 4-4-6 rhythm for a minute.',
+        'List just the next tiny step, not the whole mountain.',
+        'Release what\'s outside your control right now.',
+        'Progress over perfection. Done is better than perfect.',
+        'You\'re stronger than this moment feels.'
+      ];
+    }
+    if (key.contains('nerv') || key.contains('anx')) {
+      return [
+        'Notice 5 things you can see, 4 you can touch, 3 you can hear.',
+        'Your body is safe right now. Let your shoulders drop.',
+        'Prepare what you can, then let the rest unfold.',
+        'Speak to yourself like you would to a close friend.',
+        'You don\'t need to have it all figured out today.'
+      ];
+    }
+    if (key.contains('disappoint') || key.contains('frustrat')) {
+      return [
+        'It\'s okay to feel let down. Your feelings make sense.',
+        'What\'s one lesson you can carry forward?',
+        'Set a tiny, kind next step for yourself.',
+        'Your worth isn\'t defined by outcomes.',
+        'Tomorrow offers a fresh attempt.'
+      ];
+    }
+    if (key.contains('calm') || key.contains('peace')) {
+      return [
+        'Protect this calm—breathe and linger here a little longer.',
+        'Savor a small joy: a sip, a sound, a view.',
+        'Lightness spreads when shared—consider a gentle check-in with someone.',
+        'Anchor this feeling with a short note in your journal.',
+        'You\'re doing well. Keep it softly steady.'
+      ];
+    }
+    // Default fallback
+    return [
+      'Thanks for sharing how you feel.',
+      'Let\'s take one gentle step at a time.',
+      'A short walk or a glass of water can help reset.',
+      'You\'re allowed to take up space with your feelings.',
+      'We\'re rooting for you. Keep going.'
+    ];
+  }
+
   @override
   void initState() {
     super.initState();
@@ -138,28 +195,6 @@ class _HomePageState extends State<HomePage>
           });
         }
         if (!mounted) return;
-        if (mood == 'Sad') {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const SupportMessagesPage(
-                title: 'Feeling Sad',
-                messages: [
-                  "Why? It's not worth it! Write down your feelings in order to make a solution.",
-                  'Laughter is the best medicines. Watch something funny!',
-                  'Most Importantly, SMILE! Smiling can become contagious. If you feel depressed, smiling can help elevate your mood.',
-                  "If you need to crying definitely helps. Don't hold it back because you will feel a lot better.",
-                  'Never Give Up on yourself!',
-                  'Distract your mind from bad thoughts!',
-                  'Exercise to divert your mind and to feel better. Exercising helps you get better mentally. It helps with frustations and getting things off your mind while building muscle.',
-                  'Do not blame yourself. YOU ARE WORTH IT!',
-                  'Listen to some of you favorite songs and dance it off.',
-                  'If you know a place, you should go jump on a trampoline. It is a lot of fun and also incorporates cardio for exercising.',
-                  'Have A Great Day & Keep Smiling!',
-                ],
-              ),
-            ),
-          );
-        }
       }
     });
   }
@@ -258,9 +293,24 @@ class _HomePageState extends State<HomePage>
                                     children: items.map((map) {
                                       final String label = (map['name'] ?? '').toString();
                                       return GestureDetector(
-                                        onTap: () {
+                                        onTap: () async {
                                           HapticFeedback.lightImpact();
-                                          Navigator.of(context).pop();
+                                          final title = label;
+                                          final messages = _buildSupportMessagesFor(title);
+                                          final parentContext = this.context; // use page context, not dialog context
+                                          Navigator.of(context).pop(); // close sub-emotion dialog
+                                          // Push after the dialog closes using the parent page context
+                                          await Future.microtask(() async {
+                                            if (!mounted) return;
+                                            await Navigator.of(parentContext).push(
+                                              MaterialPageRoute(
+                                                builder: (context) => SupportMessagesPage(
+                                                  title: title,
+                                                  messages: messages,
+                                                ),
+                                              ),
+                                            );
+                                          });
                                         },
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
