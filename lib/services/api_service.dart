@@ -31,7 +31,7 @@ class ApiService {
   }
 
   /// Fetch emotions with ids (for selection leading to sub-emotions)
-  /// Returns a list of maps: { 'id': int, 'name': String }
+  /// Returns a list of maps: { 'id': int, 'name': String, 'emoji': String }
   static Future<List<Map<String, dynamic>>> fetchEmotionItems({required String email, required String password}) async {
     try {
       final url = Uri.parse('$baseUrl/emotions/api/emotions/?Email=$email&Password=$password');
@@ -44,9 +44,11 @@ class ApiService {
             final map = e as Map<String, dynamic>;
             final int? id = map['id'] is int ? map['id'] as int : int.tryParse(map['id']?.toString() ?? '');
             final String name = (map['emotion_name'] ?? map['name'] ?? '').toString();
+            final String emoji = (map['emoji'] ?? '').toString();
             return {
               'id': id ?? -1,
               'name': name,
+              'emoji': emoji,
             };
           }).where((m) => (m['id'] as int) != -1 && (m['name'] as String).isNotEmpty).toList();
         }

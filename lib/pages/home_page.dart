@@ -73,6 +73,17 @@ class _HomePageState extends State<HomePage>
   String _selectedEmotion = '';
   String _selectedEmoji = '';
 
+  String _fallbackEmojiFor(String label) {
+    final l = label.toLowerCase();
+    if (l.contains('happy') || l.contains('joy') || l.contains('glad')) return '😀';
+    if (l.contains('sad') || l.contains('down')) return '😢';
+    if (l.contains('angry') || l.contains('mad') || l.contains('rage')) return '😡';
+    if (l.contains('stress') || l.contains('tense')) return '😣';
+    if (l.contains('nerv') || l.contains('anx')) return '😬';
+    if (l.contains('calm') || l.contains('peace')) return '😌';
+    return '😀';
+  }
+
   List<String> _buildSupportMessagesFor(String label) {
     final key = label.toLowerCase();
     if (key.contains('sad') || key.contains('down')) {
@@ -652,6 +663,7 @@ class _HomePageState extends State<HomePage>
                                               final map = entry.value;
                                               final String label = (map['name'] ?? '').toString();
                                               final int emotionId = (map['id'] ?? -1) as int;
+                                              final String emoji = (map['emoji'] ?? '').toString();
                                               final isSelected = selected == label;
                                               final base = (curved.value - index * 0.05).clamp(0.0, 1.0);
                                               final dy = (1.0 - base) * 8.0;
@@ -664,6 +676,12 @@ class _HomePageState extends State<HomePage>
                                                       HapticFeedback.lightImpact();
                                                       setState(() => selected = label);
                                                       await Future.delayed(const Duration(milliseconds: 150));
+                                                      if (mounted) {
+                                                        // Persist the chosen emoji in parent state so the header can use it
+                                                        this.setState(() {
+                                                          _selectedEmoji = emoji.isNotEmpty ? emoji : _fallbackEmojiFor(label);
+                                                        });
+                                                      }
                                                       await _openSubEmotionDialog(emotionId);
                                                       if (mounted) {
                                                         Navigator.of(context).pop(label);
@@ -702,14 +720,26 @@ class _HomePageState extends State<HomePage>
                                                                 ]
                                                               : null,
                                                         ),
-                                                        child: Text(
-                                                          label,
-                                                          style: TextStyle(
-                                                            fontSize: 13,
-                                                            fontWeight: FontWeight.w600,
-                                                            color: isSelected ? Colors.white : const Color(0xFF1C1C1E),
-                                                            letterSpacing: -0.1,
-                                                          ),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            if (emoji.isNotEmpty) ...[
+                                                              Text(
+                                                                emoji,
+                                                                style: const TextStyle(fontSize: 18),
+                                                              ),
+                                                              const SizedBox(width: 8),
+                                                            ],
+                                                            Text(
+                                                              label,
+                                                              style: TextStyle(
+                                                                fontSize: 13,
+                                                                fontWeight: FontWeight.w600,
+                                                                color: isSelected ? Colors.white : const Color(0xFF1C1C1E),
+                                                                letterSpacing: -0.1,
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ),
                                                     ),
@@ -1653,14 +1683,10 @@ class _HomePageState extends State<HomePage>
                   if (mood != null && mounted) {
                     setState(() {
                       _selectedEmotion = mood;
-                      _selectedEmoji = {
-                        'Happy': '😀',
-                        'Sad': '😢',
-                        'Disappointed': '😞',
-                        'Stressed': '😣',
-                        'Nervous': '😬',
-                        'Calm': '😌',
-                      }[mood] ?? '😀';
+                      // Keep emoji set by the dialog; if none was set, fall back
+                      if (_selectedEmoji.isEmpty) {
+                        _selectedEmoji = _fallbackEmojiFor(mood);
+                      }
                     });
                   }
                 },
