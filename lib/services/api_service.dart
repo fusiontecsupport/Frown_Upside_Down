@@ -1,0 +1,90 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../models/user_model.dart';
+
+class ApiService {
+  static const String baseUrl = 'http://localhost:8000';
+  
+  /// Create a new user
+  /// Returns the created user model or throws an exception
+  static Future<UserModel> createUser(UserModel user) async {
+    try {
+      final url = Uri.parse('$baseUrl/api/create-user/');
+      
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(user.toJson()),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final jsonResponse = jsonDecode(response.body);
+        return UserModel.fromJson(jsonResponse);
+      } else {
+        // Try to parse error message
+        String errorMessage = 'Registration failed';
+        try {
+          final errorJson = jsonDecode(response.body);
+          errorMessage = errorJson['message'] ?? 
+                        errorJson['error'] ?? 
+                        errorJson.toString();
+        } catch (e) {
+          errorMessage = response.body.isNotEmpty 
+              ? response.body 
+              : 'Registration failed with status ${response.statusCode}';
+        }
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  /// Update user's plan type
+  /// Returns the updated user model or throws an exception
+  static Future<UserModel> updateUserPlanType(int userId, String planType) async {
+    try {
+      final url = Uri.parse('$baseUrl/api/update-user/$userId/');
+      
+      final response = await http.patch(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'Plan_Type': planType,
+          'Updated_at': DateTime.now().toIso8601String(),
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final jsonResponse = jsonDecode(response.body);
+        return UserModel.fromJson(jsonResponse);
+      } else {
+        String errorMessage = 'Failed to update plan type';
+        try {
+          final errorJson = jsonDecode(response.body);
+          errorMessage = errorJson['message'] ?? 
+                        errorJson['error'] ?? 
+                        errorJson.toString();
+        } catch (e) {
+          errorMessage = response.body.isNotEmpty 
+              ? response.body 
+              : 'Update failed with status ${response.statusCode}';
+        }
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+}
+

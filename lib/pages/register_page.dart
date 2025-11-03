@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'plan_selection_page.dart';
 import 'dart:math' as math;
 import 'dart:ui';
+import '../models/user_model.dart';
 
 /// Creative modern register page with innovative design
 class RegisterPage extends StatefulWidget {
@@ -168,35 +169,39 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
       return;
     }
 
-    setState(() => _isLoading = true);
+    if (_selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select your date of birth'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+        ),
+      );
+      return;
+    }
 
-    try {
-      // Simulate registration API call
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (mounted) {
-        setState(() => _isLoading = false);
-        
-        // Navigate to plan selection page
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const PlanSelectionPage(),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Registration failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
-      }
+    // Format DOB as YYYY-MM-DD for API
+    final dobFormatted = "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}";
+    
+    // Create user model (without calling API yet)
+    final user = UserModel(
+      userName: _nameController.text.trim(),
+      dob: dobFormatted,
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      confirmPassword: _confirmPasswordController.text,
+      createdAt: DateTime.now().toIso8601String(),
+    );
+
+    // Navigate to plan selection page with user data (API call will happen after plan selection)
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PlanSelectionPage(userData: user),
+        ),
+      );
     }
   }
 
@@ -204,18 +209,19 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     setState(() => _isLoading = true);
     HapticFeedback.lightImpact();
     
+    // Note: Social registration would need additional OAuth implementation
+    // For now, we'll show a message
     try {
-      // Simulate social registration API call
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 1));
       
       if (mounted) {
         setState(() => _isLoading = false);
-        
-        // Navigate to plan selection page
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const PlanSelectionPage(),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$provider registration is not yet implemented'),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
           ),
         );
       }
@@ -227,7 +233,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
             content: Text('$provider registration failed: ${e.toString()}'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
           ),
         );
       }

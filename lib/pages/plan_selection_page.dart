@@ -1,40 +1,90 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'home_page.dart';
+import '../services/api_service.dart';
+import '../models/user_model.dart';
 
 class PlanSelectionPage extends StatefulWidget {
-  const PlanSelectionPage({Key? key}) : super(key: key);
+  final UserModel? userData;
+  
+  const PlanSelectionPage({Key? key, this.userData}) : super(key: key);
 
   @override
   State<PlanSelectionPage> createState() => _PlanSelectionPageState();
 }
 
 class _PlanSelectionPageState extends State<PlanSelectionPage> {
-  int _selectedPlan = 0; // 0 for free trial, 1 for lifetime
+  int _selectedPlan = 0; // 0 for free trial, 1 for premium
   bool _isLoading = false;
 
   void _handleContinue() async {
     if (_isLoading) return;
     
+    if (widget.userData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User data is missing. Please register again.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+        ),
+      );
+      Navigator.pop(context);
+      return;
+    }
+    
     setState(() => _isLoading = true);
     HapticFeedback.mediumImpact();
     
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (mounted) {
-      setState(() => _isLoading = false);
+    try {
+      // Determine plan type: trial (0) or premium (1)
+      final planType = _selectedPlan == 0 ? 'trial' : 'premium';
       
-      // Navigate to home page
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(
-            planType: _selectedPlan == 0 ? 'trial' : 'lifetime',
-          ),
-        ),
-        (route) => false, // Remove all previous routes
+      // Create user with all data including Plan_Type and Updated_at
+      final userWithPlan = widget.userData!.copyWith(
+        planType: planType,
+        updatedAt: DateTime.now().toIso8601String(),
       );
+      
+      // Send complete user data to API (including Plan_Type)
+      final createdUser = await ApiService.createUser(userWithPlan);
+      
+      if (mounted) {
+        setState(() => _isLoading = false);
+        
+        // Navigate to home page
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(
+              planType: planType,
+            ),
+          ),
+          (route) => false, // Remove all previous routes
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        
+        // Extract error message
+        String errorMessage = 'Failed to create account';
+        if (e.toString().contains('Exception:')) {
+          errorMessage = e.toString().replaceFirst('Exception: ', '');
+        } else {
+          errorMessage = e.toString();
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -128,8 +178,8 @@ class _PlanSelectionPageState extends State<PlanSelectionPage> {
         const SizedBox(height: 12),
         _buildPlanCard(
           index: 1,
-          title: 'Lifetime Access',
-          subtitle: 'One-time payment',
+          title: 'Premium',
+          subtitle: 'Full access',
           price: '\$99',
           features: const [
             'Unlimited meditations',
@@ -294,7 +344,7 @@ class _PlanSelectionPageState extends State<PlanSelectionPage> {
                 child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
               )
             : Icon(_selectedPlan == 0 ? Icons.play_arrow_rounded : Icons.diamond, size: 20),
-        label: Text(_selectedPlan == 0 ? 'Start Free Trial' : 'Get Lifetime Access'),
+        label: Text(_selectedPlan == 0 ? 'Start Free Trial' : 'Get Premium Access'),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF4A6FA5),
           foregroundColor: Colors.white,
@@ -330,7 +380,7 @@ class _PlanSelectionPageState extends State<PlanSelectionPage> {
             Text(
               _selectedPlan == 0
                   ? 'Free trial for 7 days. Cancel anytime during trial period. No credit card required.'
-                  : 'One-time payment. No recurring charges. 30-day money-back guarantee. Secure payment.',
+                  : 'Full premium access. No recurring charges. 30-day money-back guarantee. Secure payment.',
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
