@@ -19,6 +19,7 @@ class HomePage extends StatefulWidget {
   final String planType;
   final String? userName;
   final String? email;
+  final String? password;
   final String? createdAt;
   
   const HomePage({
@@ -26,6 +27,7 @@ class HomePage extends StatefulWidget {
     required this.planType, 
     this.userName,
     this.email,
+    this.password,
     this.createdAt,
   }) : super(key: key);
 
@@ -255,11 +257,13 @@ class _HomePageState extends State<HomePage>
                             ),
                             const SizedBox(height: 16),
                             FutureBuilder<List<Map<String, dynamic>>>(
-                              future: ApiService.fetchSubEmotions(
-                                email: 'logesh2528@gmail.com',
-                                password: '12345678',
-                                emotionId: emotionId,
-                              ),
+                              future: widget.email != null && widget.password != null
+                                  ? ApiService.fetchSubEmotions(
+                                      email: widget.email!,
+                                      password: widget.password!,
+                                      emotionId: emotionId,
+                                    )
+                                  : Future.value(<Map<String, dynamic>>[]),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
                                   return const Padding(
@@ -318,6 +322,8 @@ class _HomePageState extends State<HomePage>
                                                 builder: (context) => SupportMessagesPage(
                                                   title: title,
                                                   subEmotionId: subEmotionId,
+                                                  email: widget.email,
+                                                  password: widget.password,
                                                 ),
                                               ),
                                             );
@@ -616,10 +622,12 @@ class _HomePageState extends State<HomePage>
                                       const SizedBox(height: 20),
                                       // Regular emotion options from API (with IDs)
                                       FutureBuilder<List<Map<String, dynamic>>>(
-                                        future: ApiService.fetchEmotionItems(
-                                          email: 'logesh2528@gmail.com',
-                                          password: '12345678',
-                                        ),
+                                        future: widget.email != null && widget.password != null
+                                            ? ApiService.fetchEmotionItems(
+                                                email: widget.email!,
+                                                password: widget.password!,
+                                              )
+                                            : Future.value(<Map<String, dynamic>>[]),
                                         builder: (context, snapshot) {
                                           if (snapshot.connectionState == ConnectionState.waiting) {
                                             return const Padding(
@@ -758,14 +766,7 @@ class _HomePageState extends State<HomePage>
                                         onTap: () async {
                                           HapticFeedback.mediumImpact();
                                           Navigator.of(context).pop();
-                                          final magicEmotion = await _openNestedEmotionDialog();
-                                          if (magicEmotion != null && mounted) {
-                                            // Handle magic emotion selection
-                                            setState(() {
-                                              _selectedEmotion = 'Magic: $magicEmotion';
-                                              _selectedEmoji = '✨';
-                                            });
-                                          }
+                                          await _handleMagicEmotionSelection();
                                         },
                                         child: Container(
                                           width: double.infinity,
@@ -862,6 +863,348 @@ class _HomePageState extends State<HomePage>
         );
       },
     );
+  }
+
+  Future<void> _handleMagicEmotionSelection() async {
+    final email = widget.email;
+    final password = widget.password;
+    
+    if (email == null || password == null) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: const Text('User credentials not available. Please login again.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+    
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Fetch magic emotions and emotion mapping in parallel
+      final results = await Future.wait([
+        ApiService.fetchMagicEmotions(email: email, password: password),
+        ApiService.getEmotionIdToNameMap(email: email, password: password),
+      ]);
+
+      final magicEmotions = results[0] as List<Map<String, dynamic>>;
+      final idToNameMap = results[1] as Map<int, String>;
+
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Extract unique emotion IDs and get their names
+      final Set<int> emotionIdsSet = {};
+      final List<Map<String, dynamic>> emotionList = [];
+      
+      for (var item in magicEmotions) {
+        final emotionId = item['Emotion_id'] as int?;
+        if (emotionId != null && !emotionIdsSet.contains(emotionId)) {
+          emotionIdsSet.add(emotionId);
+          final emotionName = idToNameMap[emotionId] ?? 'Emotion $emotionId';
+          emotionList.add({
+            'id': emotionId,
+            'name': emotionName,
+          });
+        }
+      }
+
+      // Show dialog with emotion names
+      if (mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Row(
+              children: [
+                Text('✨', style: TextStyle(fontSize: 24)),
+                SizedBox(width: 8),
+                Text(
+                  'Magic Emotions',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            content: emotionList.isEmpty
+                ? const Text('No magic emotions found.')
+                : SizedBox(
+                    width: double.maxFinite,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: emotionList.length,
+                      itemBuilder: (context, index) {
+                        final emotion = emotionList[index];
+                        final emotionId = emotion['id'] as int;
+                        final emotionName = emotion['name'] as String;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: GestureDetector(
+                            onTap: () async {
+                              Navigator.of(context).pop(); // Close emotion dialog
+                              await _showMagicSubEmotions(emotionId, emotionName, email, password);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.purple.withOpacity(0.2),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      emotionName,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF1C1C1E),
+                                      ),
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: 16,
+                                    color: Colors.purple,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        // Show error dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to fetch magic emotions: ${e.toString()}'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showMagicSubEmotions(
+    int emotionId,
+    String emotionName,
+    String email,
+    String password,
+  ) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Fetch magic sub-emotions for the selected emotion
+      final magicResults = await ApiService.fetchMagicEmotions(
+        email: email,
+        password: password,
+        emotionId: emotionId,
+      );
+
+      // Fetch sub-emotion names to map IDs to names
+      final subEmotions = await ApiService.fetchSubEmotions(
+        email: email,
+        password: password,
+        emotionId: emotionId,
+      );
+
+      // Create a map of sub-emotion ID to name
+      final subEmotionIdToName = <int, String>{};
+      for (var subEmotion in subEmotions) {
+        final id = subEmotion['id'] as int;
+        final name = subEmotion['name'] as String;
+        subEmotionIdToName[id] = name;
+      }
+
+      // Extract unique sub-emotion IDs from magic results
+      final Set<int> subEmotionIdsSet = {};
+      final List<Map<String, dynamic>> subEmotionList = [];
+
+      for (var item in magicResults) {
+        final subEmotionId = item['sub_emotion_id'] as int?;
+        if (subEmotionId != null && !subEmotionIdsSet.contains(subEmotionId)) {
+          subEmotionIdsSet.add(subEmotionId);
+          final subEmotionName = subEmotionIdToName[subEmotionId] ?? 'Sub-Emotion $subEmotionId';
+          subEmotionList.add({
+            'id': subEmotionId,
+            'name': subEmotionName,
+          });
+        }
+      }
+
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show sub-emotions dialog
+      if (mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                const Text('✨', style: TextStyle(fontSize: 24)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    emotionName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: subEmotionList.isEmpty
+                ? const Text('No sub-emotions found for this emotion.')
+                : SizedBox(
+                    width: double.maxFinite,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: subEmotionList.length,
+                      itemBuilder: (context, index) {
+                        final subEmotion = subEmotionList[index];
+                        final subEmotionId = subEmotion['id'] as int;
+                        final subEmotionName = subEmotion['name'] as String;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: GestureDetector(
+                            onTap: () async {
+                              HapticFeedback.lightImpact();
+                              Navigator.of(context).pop(); // Close sub-emotion dialog
+                              // Navigate to SupportMessagesPage
+                              await Future.microtask(() async {
+                                if (!mounted) return;
+                                await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => SupportMessagesPage(
+                                      title: subEmotionName,
+                                      subEmotionId: subEmotionId,
+                                      email: widget.email,
+                                      password: widget.password,
+                                    ),
+                                  ),
+                                );
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.purple.withOpacity(0.2),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      subEmotionName,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF1C1C1E),
+                                      ),
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: 16,
+                                    color: Colors.purple,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        // Show error dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to fetch sub-emotions: ${e.toString()}'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 
   Future<String?> _openNestedEmotionDialog() async {

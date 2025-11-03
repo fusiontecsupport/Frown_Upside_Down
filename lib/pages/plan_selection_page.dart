@@ -60,6 +60,7 @@ class _PlanSelectionPageState extends State<PlanSelectionPage> {
               planType: planType,
               userName: createdUser.userName,
               email: createdUser.email,
+              password: createdUser.password,
               createdAt: createdUser.createdAt,
             ),
           ),

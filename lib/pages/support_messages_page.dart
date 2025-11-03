@@ -8,11 +8,15 @@ import '../services/api_service.dart';
 class SupportMessagesPage extends StatefulWidget {
   final String title;
   final int subEmotionId;
+  final String? email;
+  final String? password;
 
   const SupportMessagesPage({
     super.key,
     required this.title,
     required this.subEmotionId,
+    this.email,
+    this.password,
   });
 
   @override
@@ -53,10 +57,17 @@ class _SupportMessagesPageState extends State<SupportMessagesPage>
   }
 
   Future<void> _fetchContents() async {
+    if (widget.email == null || widget.password == null) {
+      setState(() {
+        _loading = false;
+      });
+      return;
+    }
+    
     try {
       final items = await ApiService.fetchSubEmotionContents(
-        email: 'logesh2528@gmail.com',
-        password: '12345678',
+        email: widget.email!,
+        password: widget.password!,
         subEmotionId: widget.subEmotionId,
       );
       if (!mounted) return;

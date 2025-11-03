@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = 'http://127.0.0.1:8000';
   
   /// Fetch emotions for a given user (by email and password)
   /// Returns a list of emotion names
@@ -210,6 +210,70 @@ class ApiService {
         rethrow;
       }
       throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  /// Fetch magic emotions for a given user (by email and password)
+  /// If emotion_id is provided, fetches sub-emotions for that specific emotion
+  /// Returns a list of maps containing emotion data with Emotion_id, sub_emotion_id, etc.
+  static Future<List<Map<String, dynamic>>> fetchMagicEmotions({
+    required String email,
+    required String password,
+    int? emotionId,
+  }) async {
+    try {
+      String urlString = '$baseUrl/emotions/api/magic/?Email=$email&Password=$password';
+      if (emotionId != null) {
+        urlString += '&emotion_id=$emotionId';
+      }
+      final url = Uri.parse(urlString);
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        if (jsonResponse is Map<String, dynamic>) {
+          final List results = jsonResponse['results'] as List? ?? [];
+          return results.map((e) {
+            final map = e as Map<String, dynamic>;
+            return {
+              'id': map['id'],
+              'Emotion_id': map['Emotion_id'],
+              'sub_emotion_id': map['sub_emotion_id'],
+              'Content_type': map['Content_type'],
+              'Content_url': map['Content_url'],
+              'created_at': map['created_at'],
+              'Description': map['Description'],
+            };
+          }).toList();
+        }
+        return [];
+      } else {
+        throw Exception('Failed to fetch magic emotions: HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  /// Get emotion name by ID from the emotions list
+  /// This creates a mapping from emotion ID to emotion name
+  static Future<Map<int, String>> getEmotionIdToNameMap({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final emotionItems = await fetchEmotionItems(email: email, password: password);
+      final Map<int, String> idToName = {};
+      for (var item in emotionItems) {
+        final id = item['id'] as int;
+        final name = item['name'] as String;
+        if (id != -1 && name.isNotEmpty) {
+          idToName[id] = name;
+        }
+      }
+      return idToName;
+    } catch (e) {
+      return {};
     }
   }
 

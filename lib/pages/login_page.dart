@@ -154,6 +154,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               planType: user.planType ?? 'trial',
               userName: user.userName,
               email: user.email,
+              password: password,
               createdAt: user.createdAt,
             ),
           ),
