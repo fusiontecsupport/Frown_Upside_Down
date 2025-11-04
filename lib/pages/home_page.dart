@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:http/http.dart' as http;
+import 'package:just_audio/just_audio.dart';
 import 'emotion_content_page.dart';
 import 'support_messages_page.dart';
 import 'login_page.dart';
@@ -5016,8 +5017,8 @@ class _HomePageState extends State<HomePage>
   // --- Sleep visuals ---
 }
 
-// Magic Content Display Page
-class _MagicContentDisplayPage extends StatelessWidget {
+// Magic Content Display Page - Redesigned like EmotionContentPage
+class _MagicContentDisplayPage extends StatefulWidget {
   final String title;
   final String emotionName;
   final String contentType;
@@ -5031,192 +5032,1225 @@ class _MagicContentDisplayPage extends StatelessWidget {
   });
 
   @override
+  State<_MagicContentDisplayPage> createState() => _MagicContentDisplayPageState();
+}
+
+class _MagicContentDisplayPageState extends State<_MagicContentDisplayPage>
+    with TickerProviderStateMixin {
+  late AnimationController _breathingController;
+  late AnimationController _fadeController;
+  
+  bool _isVideoPlaying = false;
+  double _videoProgress = 0.0;
+  String? _currentVideoUrl;
+  
+  // Audio player
+  AudioPlayer? _audioPlayer;
+  String? _currentAudioUrl;
+  bool _isAudioPlaying = false;
+  Duration _audioDuration = Duration.zero;
+  Duration _audioPosition = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _breathingController = AnimationController(
+      duration: const Duration(seconds: 4),
+      vsync: this,
+    );
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _breathingController.repeat(reverse: true);
+    _fadeController.forward();
+  }
+
+  @override
+  void dispose() {
+    _breathingController.dispose();
+    _fadeController.dispose();
+    _audioPlayer?.dispose();
+    super.dispose();
+  }
+
+  // Group content by type
+  List<Map<String, dynamic>> get _audioContent {
+    return widget.contentResults.where((item) {
+      final type = (item['Content_type']?.toString().toLowerCase() ?? '');
+      return type == 'audio';
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> get _videoContent {
+    return widget.contentResults.where((item) {
+      final type = (item['Content_type']?.toString().toLowerCase() ?? '');
+      return type == 'video';
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> get _imageContent {
+    return widget.contentResults.where((item) {
+      final type = (item['Content_type']?.toString().toLowerCase() ?? '');
+      return type == 'image';
+    }).toList();
+  }
+
+  List<String> get _tipsContent {
+    return widget.contentResults
+        .where((item) => (item['Description']?.toString() ?? '').isNotEmpty)
+        .map((item) => item['Description']?.toString() ?? '')
+        .toList();
+  }
+
+  Future<void> _toggleAudio(String? audioUrl) async {
+    HapticFeedback.lightImpact();
+    
+    try {
+      if (_isAudioPlaying && _currentAudioUrl == audioUrl) {
+        // Pause current audio
+        await _audioPlayer?.pause();
+        setState(() {
+          _isAudioPlaying = false;
+        });
+      } else {
+        // Stop previous audio if playing different one
+        if (_audioPlayer != null && _currentAudioUrl != audioUrl) {
+          await _audioPlayer?.stop();
+          await _audioPlayer?.dispose();
+        }
+        
+        // Create new audio player if needed
+        if (_audioPlayer == null) {
+          _audioPlayer = AudioPlayer();
+          
+          // Listen to position changes
+          _audioPlayer!.positionStream.listen((position) {
+            if (mounted) {
+              setState(() {
+                _audioPosition = position;
+              });
+            }
+          });
+          
+          // Listen to duration changes
+          _audioPlayer!.durationStream.listen((duration) {
+            if (mounted && duration != null) {
+              setState(() {
+                _audioDuration = duration;
+              });
+            }
+          });
+          
+          // Listen to player state
+          _audioPlayer!.playerStateStream.listen((state) {
+            if (mounted) {
+              if (state.processingState == ProcessingState.completed) {
+                setState(() {
+                  _isAudioPlaying = false;
+                  _audioPosition = Duration.zero;
+                });
+              }
+            }
+          });
+        }
+        
+        // Load and play new audio
+        if (audioUrl != null && audioUrl.isNotEmpty) {
+          await _audioPlayer!.setUrl(audioUrl);
+          await _audioPlayer!.play();
+          setState(() {
+            _isAudioPlaying = true;
+            _currentAudioUrl = audioUrl;
+          });
+        }
+      }
+    } catch (e) {
+      print('Audio playback error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to play audio: $e')),
+        );
+      }
+    }
+  }
+
+  void _toggleVideo(String? videoUrl) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      if (_isVideoPlaying && _currentVideoUrl == videoUrl) {
+        _isVideoPlaying = false;
+        _currentVideoUrl = null;
+      } else {
+        _isVideoPlaying = true;
+        _currentVideoUrl = videoUrl;
+        _videoProgress = 0.0;
+      }
+    });
+    
+    if (_isVideoPlaying) {
+      _simulateVideoProgress();
+    }
+  }
+
+
+  void _simulateVideoProgress() {
+    if (_isVideoPlaying && mounted) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted && _isVideoPlaying) {
+          setState(() {
+            _videoProgress += 0.01;
+            if (_videoProgress >= 1.0) {
+              _videoProgress = 0.0;
+              _isVideoPlaying = false;
+              _currentVideoUrl = null;
+            } else {
+              _simulateVideoProgress();
+            }
+          });
+        }
+      });
+    }
+  }
+
+  Color _getEmotionColor() {
+    final emotion = widget.emotionName.toLowerCase();
+    if (emotion.contains('sad')) return Colors.blue.shade400;
+    if (emotion.contains('happy')) return Colors.yellow.shade400;
+    if (emotion.contains('stress')) return Colors.red.shade400;
+    if (emotion.contains('nerv')) return Colors.purple.shade400;
+    if (emotion.contains('calm')) return Colors.green.shade400;
+    return Colors.purple.shade400;
+  }
+
+  List<Color> _getEmotionGradient() {
+    final emotion = widget.emotionName.toLowerCase();
+    if (emotion.contains('sad')) return [Colors.blue.shade300, Colors.indigo.shade400];
+    if (emotion.contains('happy')) return [Colors.yellow.shade300, Colors.orange.shade400];
+    if (emotion.contains('stress')) return [Colors.red.shade300, Colors.pink.shade400];
+    if (emotion.contains('nerv')) return [Colors.purple.shade300, Colors.deepPurple.shade400];
+    if (emotion.contains('calm')) return [Colors.green.shade300, Colors.teal.shade400];
+    return [Colors.purple.shade300, Colors.deepPurple.shade400];
+  }
+
+  String _getEmotionEmoji() {
+    final emotion = widget.emotionName.toLowerCase();
+    if (emotion.contains('sad')) return '😢';
+    if (emotion.contains('happy')) return '😀';
+    if (emotion.contains('stress')) return '😣';
+    if (emotion.contains('nerv')) return '😬';
+    if (emotion.contains('calm')) return '😌';
+    return '✨';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final capitalizedType = contentType.isEmpty
-        ? contentType
-        : contentType[0].toUpperCase() + contentType.substring(1);
+    final emotionColor = _getEmotionColor();
+    final emotionGradient = _getEmotionGradient();
+    final emotionEmoji = _getEmotionEmoji();
     
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.purple,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              emotionGradient[0].withOpacity(0.1),
+              emotionGradient[1].withOpacity(0.05),
+              Colors.white,
+            ],
+          ),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeController,
+            child: CustomScrollView(
+              slivers: [
+                // App Bar
+                SliverAppBar(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1C1C1E)),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  title: Text(
+                    'Magic ${widget.title}',
+                    style: const TextStyle(
+                      color: Color(0xFF1C1C1E),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  centerTitle: true,
+                ),
+                
+                // Content
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        // Header Section
+                        _buildHeader(emotionEmoji, emotionGradient, emotionColor),
+                        const SizedBox(height: 30),
+                        
+                        // Audio Section
+                        if (_audioContent.isNotEmpty) ...[
+                          ..._audioContent.map((audioItem) => Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: _buildAudioSection(
+                              audioItem,
+                              emotionGradient,
+                              emotionColor,
+                            ),
+                          )),
+                        ],
+                        
+                        // Video Section
+                        if (_videoContent.isNotEmpty) ...[
+                          ..._videoContent.map((videoItem) => Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: _buildVideoSection(
+                              videoItem,
+                              emotionGradient,
+                              emotionColor,
+                            ),
+                          )),
+                        ],
+                        
+                        // Image Section
+                        if (_imageContent.isNotEmpty) ...[
+                          ..._imageContent.map((imageItem) => Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: _buildImageSection(imageItem),
+                          )),
+                        ],
+                        
+                        // Tips Section
+                        if (_tipsContent.isNotEmpty) ...[
+                          _buildTipsSection(_tipsContent, emotionGradient, emotionColor),
+                          const SizedBox(height: 20),
+                        ],
+                        
+                        if (widget.contentResults.isEmpty)
+                          Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.inbox_outlined,
+                                  size: 64,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No content available',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        
+                        const SizedBox(height: 30),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-            Text(
-              '$emotionName • $capitalizedType',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
-      body: contentResults.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.inbox_outlined,
-                    size: 64,
-                    color: Colors.grey[400],
+    );
+  }
+
+  Widget _buildHeader(String emoji, List<Color> gradient, Color color) {
+    return AnimatedBuilder(
+      animation: _breathingController,
+      builder: (context, _) {
+        final v = _breathingController.value;
+        final scale = 0.95 + (v * 0.1);
+        final glow = 0.2 + (v * 0.3);
+        
+        return Column(
+          children: [
+            Transform.scale(
+              scale: scale,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: gradient,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No content available',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[600],
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(glow),
+                      blurRadius: 30,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    emoji,
+                    style: const TextStyle(fontSize: 60),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              widget.title,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1C1C1E),
+                letterSpacing: -0.3,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Explore ${widget.emotionName} content to support your emotional journey.',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: Color(0xFF8E8E93),
+                letterSpacing: -0.1,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAudioSection(
+    Map<String, dynamic> audioItem,
+    List<Color> gradient,
+    Color color,
+  ) {
+    final audioUrl = audioItem['Content_url']?.toString() ?? '';
+    final description = audioItem['Description']?.toString() ?? '';
+    final title = description.isNotEmpty ? description : 'Audio Content';
+    final isPlaying = _isAudioPlaying && _currentAudioUrl == audioUrl;
+    
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.25),
+                Colors.white.withOpacity(0.15),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(colors: gradient),
+                    ),
+                    child: const Icon(
+                      Icons.headphones,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1C1C1E),
+                            letterSpacing: -0.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Audio',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xFF8E8E93),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _toggleAudio(audioUrl),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: color.withOpacity(0.2),
+                      ),
+                      child: Icon(
+                        isPlaying ? Icons.pause : Icons.play_arrow,
+                        color: color,
+                        size: 24,
+                      ),
                     ),
                   ),
                 ],
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: contentResults.length,
-              itemBuilder: (context, index) {
-                final item = contentResults[index];
-                final contentUrl = item['Content_url']?.toString() ?? '';
-                final description = item['Description']?.toString() ?? '';
-                final createdAt = item['created_at']?.toString() ?? '';
+              if (_isAudioPlaying && _currentAudioUrl == audioUrl) ...[
+                const SizedBox(height: 15),
+                // Progress bar with time
+                Column(
+                  children: [
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: color,
+                        inactiveTrackColor: Colors.grey.withOpacity(0.3),
+                        thumbColor: color,
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                        trackHeight: 2,
+                      ),
+                      child: Slider(
+                        value: _audioDuration.inMilliseconds > 0
+                            ? _audioPosition.inMilliseconds.toDouble()
+                            : 0,
+                        max: _audioDuration.inMilliseconds > 0
+                            ? _audioDuration.inMilliseconds.toDouble()
+                            : 100,
+                        onChanged: (value) async {
+                          final position = Duration(milliseconds: value.toInt());
+                          await _audioPlayer?.seek(position);
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _formatDuration(_audioPosition),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            _formatDuration(_audioDuration),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+  Widget _buildVideoSection(
+    Map<String, dynamic> videoItem,
+    List<Color> gradient,
+    Color color,
+  ) {
+    final videoUrl = videoItem['Content_url']?.toString() ?? '';
+    final description = videoItem['Description']?.toString() ?? '';
+    final title = description.isNotEmpty ? description : 'Video Content';
+    final isPlaying = _isVideoPlaying && _currentVideoUrl == videoUrl;
+    
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.25),
+                Colors.white.withOpacity(0.15),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(colors: gradient),
+                    ),
+                    child: const Icon(
+                      Icons.play_circle_filled,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
+                  const SizedBox(width: 15),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (contentType == 'image' && contentUrl.isNotEmpty)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              contentUrl,
-                              width: double.infinity,
-                              height: 200,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  height: 200,
-                                  color: Colors.grey[200],
-                                  child: const Icon(
-                                    Icons.broken_image,
-                                    size: 48,
-                                    color: Colors.grey,
-                                  ),
-                                );
-                              },
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Container(
-                                  height: 200,
-                                  color: Colors.grey[200],
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      value: loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress.cumulativeBytesLoaded /
-                                              loadingProgress.expectedTotalBytes!
-                                          : null,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          )
-                        else if (contentType == 'video' && contentUrl.isNotEmpty)
-                          _VideoPlayerWidget(videoUrl: contentUrl)
-                        else if (contentType == 'audio' && contentUrl.isNotEmpty)
-                          Container(
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: Colors.purple.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.audiotrack,
-                                size: 48,
-                                color: Colors.purple,
-                              ),
-                            ),
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1C1C1E),
+                            letterSpacing: -0.2,
                           ),
-                        if (description.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          Text(
-                            description,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF1C1C1E),
-                            ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Video',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xFF8E8E93),
                           ),
-                        ],
-                        if (contentUrl.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(
-                                contentType == 'image'
-                                    ? Icons.image
-                                    : contentType == 'video'
-                                        ? Icons.video_library
-                                        : Icons.link,
-                                size: 16,
-                                color: Colors.grey[600],
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  contentUrl,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                        if (createdAt.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            createdAt,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                        ],
+                        ),
                       ],
                     ),
                   ),
-                );
-              },
+                  GestureDetector(
+                    onTap: () => _toggleVideo(videoUrl),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: color.withOpacity(0.2),
+                      ),
+                      child: Icon(
+                        isPlaying ? Icons.pause : Icons.play_arrow,
+                        color: color,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (isPlaying) ...[
+                const SizedBox(height: 15),
+                LinearProgressIndicator(
+                  value: _videoProgress,
+                  backgroundColor: Colors.grey.withOpacity(0.3),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              ],
+              const SizedBox(height: 15),
+              // Video Player Widget - Tap to open full screen
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FullScreenVideoPlayerPage(
+                        videoUrl: videoUrl,
+                        title: title,
+                      ),
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    children: [
+                      _VideoPlayerWidget(videoUrl: videoUrl),
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black.withOpacity(0.3),
+                          child: const Center(
+                            child: Icon(
+                              Icons.play_circle_filled,
+                              color: Colors.white,
+                              size: 64,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageSection(Map<String, dynamic> imageItem) {
+    final imageUrl = imageItem['Content_url']?.toString() ?? '';
+    final description = imageItem['Description']?.toString() ?? '';
+    
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.25),
+                Colors.white.withOpacity(0.15),
+              ],
             ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (description.isNotEmpty) ...[
+                Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1C1C1E),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 15),
+              ],
+              if (imageUrl.isNotEmpty)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    imageUrl,
+                    width: double.infinity,
+                    height: 250,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 250,
+                        color: Colors.grey[200],
+                        child: const Icon(
+                          Icons.broken_image,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: 250,
+                        color: Colors.grey[200],
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTipsSection(List<String> tips, List<Color> gradient, Color color) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.25),
+                Colors.white.withOpacity(0.15),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(colors: gradient),
+                    ),
+                    child: const Icon(
+                      Icons.article,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  const Expanded(
+                    child: Text(
+                      'Helpful Tips & Insights',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1C1C1E),
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ...tips.asMap().entries.map((entry) {
+                final index = entry.key;
+                final tip = entry.value;
+                return Padding(
+                  padding: EdgeInsets.only(bottom: index < tips.length - 1 ? 12 : 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        margin: const EdgeInsets.only(top: 8, right: 12),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: color,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          tip,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xFF1C1C1E),
+                            letterSpacing: -0.1,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$minutes:$seconds';
+  }
+}
+
+// Full Screen Video Player Page
+class FullScreenVideoPlayerPage extends StatefulWidget {
+  final String videoUrl;
+  final String title;
+
+  const FullScreenVideoPlayerPage({
+    Key? key,
+    required this.videoUrl,
+    required this.title,
+  }) : super(key: key);
+
+  @override
+  State<FullScreenVideoPlayerPage> createState() => _FullScreenVideoPlayerPageState();
+}
+
+class _FullScreenVideoPlayerPageState extends State<FullScreenVideoPlayerPage> {
+  VideoPlayerController? _controller;
+  bool _isInitialized = false;
+  bool _hasError = false;
+  String? _errorMessage;
+  bool _showControls = true;
+  bool _isPlaying = false;
+  Timer? _hideControlsTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeVideo();
+    _startHideControlsTimer();
+  }
+
+  void _startHideControlsTimer() {
+    _hideControlsTimer?.cancel();
+    _hideControlsTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted && _isPlaying) {
+        setState(() {
+          _showControls = false;
+        });
+      }
+    });
+  }
+
+  void _toggleControls() {
+    setState(() {
+      _showControls = !_showControls;
+    });
+    _startHideControlsTimer();
+  }
+
+  Future<void> _initializeVideo() async {
+    try {
+      String url = widget.videoUrl.trim();
+      
+      // Handle URL encoding
+      if (url.contains(' ') && !url.contains('%20')) {
+        final parts = url.split('://');
+        if (parts.length == 2) {
+          final scheme = parts[0];
+          final rest = parts[1];
+          final slashIndex = rest.indexOf('/');
+          
+          if (slashIndex > 0) {
+            final host = rest.substring(0, slashIndex);
+            final path = rest.substring(slashIndex);
+            final pathSegments = path.split('/').where((s) => s.isNotEmpty).toList();
+            final encodedSegments = pathSegments.map((segment) {
+              return Uri.encodeComponent(segment);
+            }).toList();
+            url = '$scheme://$host/${encodedSegments.join('/')}';
+          }
+        }
+      }
+      
+      final videoUri = Uri.parse(url);
+      _controller = VideoPlayerController.networkUrl(
+        videoUri,
+        httpHeaders: {'Accept': 'video/*'},
+      );
+
+      _controller!.addListener(() {
+        if (mounted) {
+          setState(() {
+            _isPlaying = _controller!.value.isPlaying;
+            if (_controller!.value.hasError) {
+              _hasError = true;
+              _errorMessage = _controller!.value.errorDescription ?? 'Unknown error';
+            }
+          });
+        }
+      });
+
+      await _controller!.initialize();
+      
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+          _hasError = false;
+        });
+        // Auto-play in full screen
+        _controller!.play();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = e.toString();
+        });
+      }
+    }
+  }
+
+  Future<void> _seek(Duration position) async {
+    if (_controller != null && _controller!.value.isInitialized) {
+      await _controller!.seekTo(position);
+    }
+  }
+
+  void _seekForward() {
+    if (_controller != null && _controller!.value.isInitialized) {
+      final currentPosition = _controller!.value.position;
+      final newPosition = currentPosition + const Duration(seconds: 10);
+      final duration = _controller!.value.duration;
+      _seek(newPosition > duration ? duration : newPosition);
+    }
+    _startHideControlsTimer();
+  }
+
+  void _seekBackward() {
+    if (_controller != null && _controller!.value.isInitialized) {
+      final currentPosition = _controller!.value.position;
+      final newPosition = currentPosition - const Duration(seconds: 10);
+      _seek(newPosition < Duration.zero ? Duration.zero : newPosition);
+    }
+    _startHideControlsTimer();
+  }
+
+  void _togglePlayPause() {
+    if (_controller != null) {
+      if (_controller!.value.isPlaying) {
+        _controller!.pause();
+      } else {
+        _controller!.play();
+      }
+    }
+    _startHideControlsTimer();
+  }
+
+  @override
+  void dispose() {
+    _hideControlsTimer?.cancel();
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    if (hours > 0) {
+      return '${twoDigits(hours)}:${twoDigits(minutes)}:${twoDigits(seconds)}';
+    }
+    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // Video Player
+            Center(
+              child: _hasError
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.white, size: 48),
+                        const SizedBox(height: 16),
+                        Text(
+                          _errorMessage ?? 'Error loading video',
+                          style: const TextStyle(color: Colors.white),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Go Back'),
+                        ),
+                      ],
+                    )
+                  : _isInitialized && _controller != null
+                      ? GestureDetector(
+                          onTap: _toggleControls,
+                          child: AspectRatio(
+                            aspectRatio: _controller!.value.aspectRatio,
+                            child: VideoPlayer(_controller!),
+                          ),
+                        )
+                      : const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+            ),
+            
+            // Controls Overlay
+            if (_showControls && _isInitialized && !_hasError)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.5),
+                  child: Column(
+                    children: [
+                      // Top Bar
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back, color: Colors.white),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            Expanded(
+                              child: Text(
+                                widget.title,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const Spacer(),
+                      
+                      // Middle Controls
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Rewind 10s
+                          IconButton(
+                            icon: const Icon(Icons.replay_10, color: Colors.white, size: 32),
+                            onPressed: _seekBackward,
+                            iconSize: 40,
+                          ),
+                          const SizedBox(width: 20),
+                          
+                          // Play/Pause
+                          Container(
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                _isPlaying ? Icons.pause : Icons.play_arrow,
+                                color: Colors.black,
+                                size: 32,
+                              ),
+                              onPressed: _togglePlayPause,
+                              iconSize: 48,
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          
+                          // Forward 10s
+                          IconButton(
+                            icon: const Icon(Icons.forward_10, color: Colors.white, size: 32),
+                            onPressed: _seekForward,
+                            iconSize: 40,
+                          ),
+                        ],
+                      ),
+                      
+                      const Spacer(),
+                      
+                      // Bottom Controls - Progress Bar
+                      if (_controller != null && _controller!.value.isInitialized)
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              // Time indicators and progress bar
+                              Row(
+                                children: [
+                                  Text(
+                                    _formatDuration(_controller!.value.position),
+                                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                                  ),
+                                  Expanded(
+                                    child: SliderTheme(
+                                      data: SliderTheme.of(context).copyWith(
+                                        activeTrackColor: Colors.white,
+                                        inactiveTrackColor: Colors.white.withOpacity(0.3),
+                                        thumbColor: Colors.white,
+                                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                                        trackHeight: 3,
+                                      ),
+                                      child: Slider(
+                                        value: _controller!.value.position.inMilliseconds.toDouble(),
+                                        max: _controller!.value.duration.inMilliseconds.toDouble(),
+                                        onChanged: (value) async {
+                                          await _seek(Duration(milliseconds: value.toInt()));
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    _formatDuration(_controller!.value.duration),
+                                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

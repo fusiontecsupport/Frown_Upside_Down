@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  static const String baseUrl = 'https://fusionfud.fusiontecsoftware.co.in/';
   
   /// Fetch emotions for a given user (by email and password)
   /// Returns a list of emotion names
