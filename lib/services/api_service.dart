@@ -215,16 +215,26 @@ class ApiService {
 
   /// Fetch magic emotions for a given user (by email and password)
   /// If emotion_id is provided, fetches sub-emotions for that specific emotion
+  /// If sub_emotion_id is provided, filters by that sub-emotion
+  /// If content_type is provided, filters by that content type (e.g., 'image', 'video')
   /// Returns a list of maps containing emotion data with Emotion_id, sub_emotion_id, etc.
   static Future<List<Map<String, dynamic>>> fetchMagicEmotions({
     required String email,
     required String password,
     int? emotionId,
+    int? subEmotionId,
+    String? contentType,
   }) async {
     try {
       String urlString = '$baseUrl/emotions/api/magic/?Email=$email&Password=$password';
       if (emotionId != null) {
         urlString += '&emotion_id=$emotionId';
+      }
+      if (subEmotionId != null) {
+        urlString += '&sub_emotion_id=$subEmotionId';
+      }
+      if (contentType != null) {
+        urlString += '&content_type=$contentType';
       }
       final url = Uri.parse(urlString);
       final response = await http.get(url);

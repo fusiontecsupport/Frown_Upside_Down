@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'dart:math' show cos, sin, Random;
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
+import 'package:http/http.dart' as http;
 import 'emotion_content_page.dart';
 import 'support_messages_page.dart';
 import 'login_page.dart';
@@ -1068,9 +1070,11 @@ class _HomePageState extends State<HomePage>
         subEmotionIdToName[id] = name;
       }
 
+      // Store magic results for later use (to extract content types)
       // Extract unique sub-emotion IDs from magic results
       final Set<int> subEmotionIdsSet = {};
       final List<Map<String, dynamic>> subEmotionList = [];
+      final List<Map<String, dynamic>> magicResultsForSubEmotion = [];
 
       for (var item in magicResults) {
         final subEmotionId = item['sub_emotion_id'] as int?;
@@ -1082,6 +1086,8 @@ class _HomePageState extends State<HomePage>
             'name': subEmotionName,
           });
         }
+        // Store all results for content type extraction
+        magicResultsForSubEmotion.add(item);
       }
 
       // Close loading dialog
@@ -1127,20 +1133,16 @@ class _HomePageState extends State<HomePage>
                             onTap: () async {
                               HapticFeedback.lightImpact();
                               Navigator.of(context).pop(); // Close sub-emotion dialog
-                              // Navigate to SupportMessagesPage
-                              await Future.microtask(() async {
-                                if (!mounted) return;
-                                await Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => SupportMessagesPage(
-                                      title: subEmotionName,
-                                      subEmotionId: subEmotionId,
-                                      email: widget.email,
-                                      password: widget.password,
-                                    ),
-                                  ),
-                                );
-                              });
+                              // Show content types for this sub-emotion
+                              await _showMagicContentTypes(
+                                emotionId,
+                                emotionName,
+                                subEmotionId,
+                                subEmotionName,
+                                email,
+                                password,
+                                magicResultsForSubEmotion,
+                              );
                             },
                             child: Container(
                               padding: const EdgeInsets.all(12),
@@ -1195,6 +1197,269 @@ class _HomePageState extends State<HomePage>
           builder: (context) => AlertDialog(
             title: const Text('Error'),
             content: Text('Failed to fetch sub-emotions: ${e.toString()}'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showMagicContentTypes(
+    int emotionId,
+    String emotionName,
+    int subEmotionId,
+    String subEmotionName,
+    String email,
+    String password,
+    List<Map<String, dynamic>> magicResults,
+  ) async {
+    try {
+      // Extract available content types from magic results for this sub-emotion
+      final Set<String> contentTypeSet = {};
+      
+      for (var item in magicResults) {
+        final itemSubEmotionId = item['sub_emotion_id'] as int?;
+        if (itemSubEmotionId == subEmotionId) {
+          final contentType = item['Content_type']?.toString().toLowerCase();
+          if (contentType != null && contentType.isNotEmpty) {
+            contentTypeSet.add(contentType);
+          }
+        }
+      }
+
+      // If no content types found in results, fetch from API
+      List<String> contentTypes = contentTypeSet.toList();
+      if (contentTypes.isEmpty) {
+        // Show loading dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
+        // Try fetching with content_type filter to see what's available
+        // We'll extract unique content types from a sample call
+        final sampleResults = await ApiService.fetchMagicEmotions(
+          email: email,
+          password: password,
+          emotionId: emotionId,
+          subEmotionId: subEmotionId,
+        );
+
+        // Close loading dialog
+        if (mounted) Navigator.of(context).pop();
+
+        final Set<String> apiContentTypes = {};
+        for (var item in sampleResults) {
+          final contentType = item['Content_type']?.toString().toLowerCase();
+          if (contentType != null && contentType.isNotEmpty) {
+            apiContentTypes.add(contentType);
+          }
+        }
+        contentTypes = apiContentTypes.toList();
+      }
+
+      // Show content types dialog
+      if (mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Text('✨', style: TextStyle(fontSize: 24)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        subEmotionName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  emotionName,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+            content: contentTypes.isEmpty
+                ? const Text('No content types available.')
+                : SizedBox(
+                    width: double.maxFinite,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: contentTypes.length,
+                      itemBuilder: (context, index) {
+                        final contentType = contentTypes[index];
+                        final capitalizedType = contentType.isEmpty
+                            ? contentType
+                            : contentType[0].toUpperCase() + contentType.substring(1);
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: GestureDetector(
+                            onTap: () async {
+                              HapticFeedback.lightImpact();
+                              Navigator.of(context).pop(); // Close content type dialog
+                              // Fetch and display content
+                              await _showMagicContent(
+                                emotionId,
+                                emotionName,
+                                subEmotionId,
+                                subEmotionName,
+                                contentType,
+                                email,
+                                password,
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.purple.withOpacity(0.2),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    contentType == 'image'
+                                        ? Icons.image
+                                        : contentType == 'video'
+                                            ? Icons.video_library
+                                            : contentType == 'audio'
+                                                ? Icons.audiotrack
+                                                : Icons.insert_drive_file,
+                                    color: Colors.purple,
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      capitalizedType,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF1C1C1E),
+                                      ),
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: 16,
+                                    color: Colors.purple,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to fetch content types: ${e.toString()}'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showMagicContent(
+    int emotionId,
+    String emotionName,
+    int subEmotionId,
+    String subEmotionName,
+    String contentType,
+    String email,
+    String password,
+  ) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Fetch content with all parameters
+      final contentResults = await ApiService.fetchMagicEmotions(
+        email: email,
+        password: password,
+        emotionId: emotionId,
+        subEmotionId: subEmotionId,
+        contentType: contentType,
+      );
+
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show content display page
+      if (mounted) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => _MagicContentDisplayPage(
+              title: subEmotionName,
+              emotionName: emotionName,
+              contentType: contentType,
+              contentResults: contentResults,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+        // Show error dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to fetch content: ${e.toString()}'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -4749,6 +5014,587 @@ class _HomePageState extends State<HomePage>
   }
 
   // --- Sleep visuals ---
+}
+
+// Magic Content Display Page
+class _MagicContentDisplayPage extends StatelessWidget {
+  final String title;
+  final String emotionName;
+  final String contentType;
+  final List<Map<String, dynamic>> contentResults;
+
+  const _MagicContentDisplayPage({
+    required this.title,
+    required this.emotionName,
+    required this.contentType,
+    required this.contentResults,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final capitalizedType = contentType.isEmpty
+        ? contentType
+        : contentType[0].toUpperCase() + contentType.substring(1);
+    
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.purple,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            Text(
+              '$emotionName • $capitalizedType',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: contentResults.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.inbox_outlined,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No content available',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: contentResults.length,
+              itemBuilder: (context, index) {
+                final item = contentResults[index];
+                final contentUrl = item['Content_url']?.toString() ?? '';
+                final description = item['Description']?.toString() ?? '';
+                final createdAt = item['created_at']?.toString() ?? '';
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (contentType == 'image' && contentUrl.isNotEmpty)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              contentUrl,
+                              width: double.infinity,
+                              height: 200,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 200,
+                                  color: Colors.grey[200],
+                                  child: const Icon(
+                                    Icons.broken_image,
+                                    size: 48,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  height: 200,
+                                  color: Colors.grey[200],
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      value: loadingProgress.expectedTotalBytes != null
+                                          ? loadingProgress.cumulativeBytesLoaded /
+                                              loadingProgress.expectedTotalBytes!
+                                          : null,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          )
+                        else if (contentType == 'video' && contentUrl.isNotEmpty)
+                          _VideoPlayerWidget(videoUrl: contentUrl)
+                        else if (contentType == 'audio' && contentUrl.isNotEmpty)
+                          Container(
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.purple.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.audiotrack,
+                                size: 48,
+                                color: Colors.purple,
+                              ),
+                            ),
+                          ),
+                        if (description.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            description,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF1C1C1E),
+                            ),
+                          ),
+                        ],
+                        if (contentUrl.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                contentType == 'image'
+                                    ? Icons.image
+                                    : contentType == 'video'
+                                        ? Icons.video_library
+                                        : Icons.link,
+                                size: 16,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  contentUrl,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        if (createdAt.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            createdAt,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
+// Video Player Widget
+class _VideoPlayerWidget extends StatefulWidget {
+  final String videoUrl;
+
+  const _VideoPlayerWidget({required this.videoUrl});
+
+  @override
+  State<_VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
+  VideoPlayerController? _controller;
+  bool _isInitialized = false;
+  bool _hasError = false;
+  String? _errorMessage;
+  int _retryCount = 0;
+  static const int _maxRetries = 2;
+
+  @override
+  void initState() {
+    super.initState();
+    // Add a longer delay to ensure iOS plugin channel is ready
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _initializeVideo();
+      }
+    });
+  }
+
+  Future<void> _initializeVideo() async {
+    try {
+      // Dispose previous controller if exists
+      await _controller?.dispose();
+      
+      // Handle URL encoding properly
+      String url = widget.videoUrl.trim();
+      
+      // Parse URL into components and rebuild with proper encoding
+      try {
+        // Try parsing as-is first
+        Uri? testUri = Uri.tryParse(url);
+        
+        // If URL has spaces, we need to encode the path properly
+        if (url.contains(' ') && !url.contains('%20')) {
+          // Split into scheme, host, and path
+          final parts = url.split('://');
+          if (parts.length == 2) {
+            final scheme = parts[0];
+            final rest = parts[1];
+            final slashIndex = rest.indexOf('/');
+            
+            if (slashIndex > 0) {
+              final host = rest.substring(0, slashIndex);
+              final path = rest.substring(slashIndex);
+              
+              // Parse the path and encode each segment
+              final pathSegments = path.split('/').where((s) => s.isNotEmpty).toList();
+              final encodedSegments = pathSegments.map((segment) {
+                // Encode spaces and special characters
+                return Uri.encodeComponent(segment);
+              }).toList();
+              
+              // Rebuild URL
+              url = '$scheme://$host/${encodedSegments.join('/')}';
+            }
+          }
+        }
+        
+        // Parse the final URL
+        final videoUri = Uri.parse(url);
+        
+        print('📋 URL Processing:');
+        print('   Original: ${widget.videoUrl}');
+        print('   Encoded:  $url');
+        
+        // Verify URL is accessible
+        print('🔍 Checking URL accessibility...');
+        try {
+          final response = await http.head(videoUri).timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              throw Exception('Request timeout');
+            },
+          );
+          print('   Status Code: ${response.statusCode}');
+          print('   Content-Type: ${response.headers['content-type']}');
+          print('   Content-Length: ${response.headers['content-length']}');
+          if (response.statusCode != 200 && response.statusCode != 206) {
+            print('   ⚠️  Warning: Non-standard status code');
+          } else {
+            print('   ✅ URL is accessible');
+            // Check for Range support
+            if (response.headers['accept-ranges'] != null) {
+              print('   ✅ Server supports Range requests: ${response.headers['accept-ranges']}');
+            } else {
+              print('   ⚠️  Warning: Server may not support Range requests (this may cause video playback issues)');
+            }
+          }
+        } catch (e) {
+          print('   ❌ URL accessibility check failed: $e');
+          // Continue anyway - let video player try
+        }
+      } catch (e) {
+        print('URL encoding error: $e');
+        // Fallback to original URL
+        url = widget.videoUrl.trim();
+      }
+      
+      // Parse the final URL
+      final videoUri = Uri.parse(url);
+      
+      print('Initializing video player with URI: $videoUri');
+      
+      // Don't set Range header - let video player handle it
+      // The issue is server-side Range request handling
+      _controller = VideoPlayerController.networkUrl(
+        videoUri,
+        httpHeaders: {
+          'Accept': 'video/*',
+        },
+      );
+
+      // Set error handler
+      void videoListener() {
+        if (_controller != null && _controller!.value.hasError) {
+          if (mounted) {
+            setState(() {
+              _hasError = true;
+              _errorMessage = _controller!.value.errorDescription ?? 'Unknown video error';
+            });
+          }
+        }
+      }
+      _controller!.addListener(videoListener);
+
+      // Initialize with timeout
+      print('═══════════════════════════════════════════════════════════');
+      print('🚀 Starting video player initialization...');
+      print('URL: $url');
+      print('═══════════════════════════════════════════════════════════');
+      
+      try {
+        await _controller!.initialize().timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            print('❌ Video initialization TIMEOUT after 15 seconds');
+            throw Exception('Video initialization timeout');
+          },
+        );
+        
+        print('✅ Video player initialized successfully!');
+        print('📹 Video duration: ${_controller!.value.duration}');
+        print('📐 Video size: ${_controller!.value.size}');
+        print('🎬 Can play: ${_controller!.value.isInitialized}');
+        print('═══════════════════════════════════════════════════════════');
+        
+        if (mounted) {
+          setState(() {
+            _isInitialized = true;
+            _hasError = false;
+          });
+        }
+      } catch (initError) {
+        print('❌ Video initialization error caught:');
+        print('   Error: $initError');
+        print('   Type: ${initError.runtimeType}');
+        if (initError is PlatformException) {
+          print('   Code: ${initError.code}');
+          print('   Message: ${initError.message}');
+          print('   Details: ${initError.details}');
+        }
+        print('═══════════════════════════════════════════════════════════');
+        rethrow;
+      }
+    } catch (e, stackTrace) {
+      print('═══════════════════════════════════════════════════════════');
+      print('❌ VIDEO PLAYER ERROR:');
+      print('   Error: $e');
+      print('   Type: ${e.runtimeType}');
+      if (e is PlatformException) {
+        print('   Platform Exception Details:');
+        print('   - Code: ${e.code}');
+        print('   - Message: ${e.message}');
+        print('   - Details: ${e.details}');
+      }
+      print('');
+      print('📋 Full Stack Trace:');
+      print('   $stackTrace');
+      print('═══════════════════════════════════════════════════════════');
+      
+      if (mounted) {
+        // Retry if it's a channel error and we haven't exceeded max retries
+        if ((e.toString().contains('PlatformException') || 
+             e.toString().contains('channel-error') ||
+             e.toString().contains('Unable to establish connection')) && 
+            _retryCount < _maxRetries) {
+          _retryCount++;
+          print('');
+          print('🔄 Retrying video initialization...');
+          print('   Attempt: $_retryCount/$_maxRetries');
+          print('   Waiting ${1000 * _retryCount}ms before retry...');
+          // Wait a bit longer before retry
+          await Future.delayed(Duration(milliseconds: 1000 * _retryCount));
+          if (mounted) {
+            _initializeVideo();
+          }
+        } else {
+          print('');
+          print('🛑 Video initialization failed after $_retryCount retries');
+          print('   Final error: $e');
+          print('═══════════════════════════════════════════════════════════');
+          setState(() {
+            _hasError = true;
+            // Provide more user-friendly error messages
+            if (e.toString().contains('PlatformException') || 
+                e.toString().contains('channel-error') ||
+                e.toString().contains('Unable to establish connection')) {
+              _errorMessage = 'Video player not ready. Please stop and restart the app completely (full rebuild needed).';
+            } else if (e.toString().contains('timeout')) {
+              _errorMessage = 'Video loading timeout. Check your internet connection.';
+            } else if (e.toString().contains('byte range') || 
+                       e.toString().contains('CoreMediaErrorDomain') ||
+                       e.toString().contains('Range request')) {
+              _errorMessage = 'Server configuration issue: Video streaming requires proper HTTP Range request support. Please configure your Django server to handle Range requests.';
+            } else {
+              _errorMessage = 'Failed to load video: ${e.toString()}';
+            }
+          });
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(() {});
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hasError) {
+      return Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Colors.red,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Failed to load video',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+              ),
+            ),
+            if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Text(
+                      _errorMessage!,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _hasError = false;
+                          _retryCount = 0;
+                        });
+                        _initializeVideo();
+                      },
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: const Text('Retry'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    if (!_isInitialized || _controller == null) {
+      return Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: AspectRatio(
+        aspectRatio: _controller!.value.aspectRatio,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            VideoPlayer(_controller!),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (_controller!.value.isPlaying) {
+                    _controller!.pause();
+                  } else {
+                    _controller!.play();
+                  }
+                });
+              },
+              child: Container(
+                color: Colors.transparent,
+                child: _controller!.value.isPlaying
+                    ? const SizedBox.shrink()
+                    : Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          size: 48,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: VideoProgressIndicator(
+                _controller!,
+                allowScrubbing: true,
+                colors: const VideoProgressColors(
+                  playedColor: Colors.purple,
+                  bufferedColor: Colors.white54,
+                  backgroundColor: Colors.white24,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _WeeklySleepBarChart extends StatelessWidget {
