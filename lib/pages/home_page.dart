@@ -39,7 +39,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _fadeController;
   late AnimationController _breathingController;
   late Animation<double> _fadeAnimation;
@@ -77,6 +77,9 @@ class _HomePageState extends State<HomePage>
   // Emotion state
   String _selectedEmotion = '';
   String _selectedEmoji = '';
+  
+  // Refresh key to force FutureBuilder to refetch data
+  Key _emotionRefreshKey = UniqueKey();
 
   String _fallbackEmojiFor(String label) {
     final l = label.toLowerCase();
@@ -197,10 +200,16 @@ class _HomePageState extends State<HomePage>
     // Initialize daily challenge
     _initializeDailyChallenge();
     
+    // Force refresh of emotions on init to get latest data
+    _emotionRefreshKey = UniqueKey();
+    
     // Initialize emotion state
     _selectedEmotion = '';
     _selectedEmoji = '';
 
+    // Add lifecycle observer to refresh data when app comes to foreground
+    WidgetsBinding.instance.addObserver(this);
+    
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!_emotionDialogShown) {
         _emotionDialogShown = true;
@@ -378,7 +387,18 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Refresh data when app comes to foreground to get latest content
+    if (state == AppLifecycleState.resumed) {
+      setState(() {
+        _emotionRefreshKey = UniqueKey(); // Force FutureBuilder to refetch
+      });
+    }
+  }
+
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _fadeController.dispose();
     _breathingController.dispose();
     _flipController.dispose();
@@ -625,6 +645,7 @@ class _HomePageState extends State<HomePage>
                                       const SizedBox(height: 20),
                                       // Regular emotion options from API (with IDs)
                                       FutureBuilder<List<Map<String, dynamic>>>(
+                                        key: _emotionRefreshKey,
                                         future: widget.email != null && widget.password != null
                                             ? ApiService.fetchEmotionItems(
                                                 email: widget.email!,
@@ -929,86 +950,176 @@ class _HomePageState extends State<HomePage>
         }
       }
 
-      // Show dialog with emotion names
+      // Show dialog with emotion names using same design as emotions popup
       if (mounted) {
-        await showDialog(
+        await showGeneralDialog<void>(
           context: context,
-          builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: const Row(
-              children: [
-                Text('✨', style: TextStyle(fontSize: 24)),
-                SizedBox(width: 8),
-                Text(
-                  'Magic Emotions',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-            content: emotionList.isEmpty
-                ? const Text('No magic emotions found.')
-                : SizedBox(
-                    width: double.maxFinite,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: emotionList.length,
-                      itemBuilder: (context, index) {
-                        final emotion = emotionList[index];
-                        final emotionId = emotion['id'] as int;
-                        final emotionName = emotion['name'] as String;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: GestureDetector(
-                            onTap: () async {
-                              Navigator.of(context).pop(); // Close emotion dialog
-                              await _showMagicSubEmotions(emotionId, emotionName, email, password);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.purple.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.purple.withOpacity(0.2),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      emotionName,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF1C1C1E),
-                                      ),
+          barrierDismissible: true,
+          barrierLabel: 'Magic Emotions',
+          barrierColor: Colors.black.withOpacity(0.3),
+          transitionDuration: const Duration(milliseconds: 220),
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return const SizedBox.shrink();
+          },
+          transitionBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+            return BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Opacity(
+                opacity: curved.value,
+                child: Transform.scale(
+                  scale: 0.94 + 0.06 * curved.value,
+                  child: Center(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Dialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: MediaQuery.of(context).size.height * 0.85,
+                            maxWidth: MediaQuery.of(context).size.width * 0.9,
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.white.withOpacity(0.25),
+                                      Colors.white.withOpacity(0.15),
+                                      Colors.white.withOpacity(0.10),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: kPrimary.withOpacity(0.1),
+                                      blurRadius: 60,
+                                      offset: const Offset(0, 30),
                                     ),
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 30,
+                                      offset: const Offset(0, 15),
+                                    ),
+                                  ],
+                                ),
+                                child: SingleChildScrollView(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        width: 40,
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: kPrimary.withOpacity(0.4),
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text('✨', style: TextStyle(fontSize: 22)),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'Magic Emotions',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w700,
+                                              color: Color(0xFF1C1C1E),
+                                              letterSpacing: -0.2,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        emotionList.isEmpty ? 'No magic emotions found.' : 'Select one to continue',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Color(0xFF8E8E93),
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      if (emotionList.isNotEmpty)
+                                        ListView.builder(
+                                          shrinkWrap: true,
+                                          physics: const NeverScrollableScrollPhysics(),
+                                          itemCount: emotionList.length,
+                                          itemBuilder: (context, index) {
+                                            final emotion = emotionList[index];
+                                            final emotionId = emotion['id'] as int;
+                                            final emotionName = emotion['name'] as String;
+                                            return Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 6),
+                                              child: GestureDetector(
+                                                onTap: () async {
+                                                  Navigator.of(context).pop();
+                                                  await _showMagicSubEmotions(emotionId, emotionName, email, password);
+                                                },
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.purple.shade50,
+                                                    borderRadius: BorderRadius.circular(14),
+                                                    border: Border.all(color: Colors.purple.withOpacity(0.2)),
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          emotionName,
+                                                          style: const TextStyle(
+                                                            fontSize: 15,
+                                                            fontWeight: FontWeight.w600,
+                                                            color: Color(0xFF1C1C1E),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.purple),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      const SizedBox(height: 16),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: TextButton(
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          child: const Text('Close'),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 16,
-                                    color: Colors.purple,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+                ),
               ),
-            ],
-          ),
+            );
+          },
         );
       }
     } catch (e) {
@@ -1094,98 +1205,190 @@ class _HomePageState extends State<HomePage>
       // Close loading dialog
       if (mounted) Navigator.of(context).pop();
 
-      // Show sub-emotions dialog
+      // Show sub-emotions dialog using same design as emotions popup
       if (mounted) {
-        await showDialog(
+        await showGeneralDialog<void>(
           context: context,
-          builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Row(
-              children: [
-                const Text('✨', style: TextStyle(fontSize: 24)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    emotionName,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            content: subEmotionList.isEmpty
-                ? const Text('No sub-emotions found for this emotion.')
-                : SizedBox(
-                    width: double.maxFinite,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: subEmotionList.length,
-                      itemBuilder: (context, index) {
-                        final subEmotion = subEmotionList[index];
-                        final subEmotionId = subEmotion['id'] as int;
-                        final subEmotionName = subEmotion['name'] as String;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: GestureDetector(
-                            onTap: () async {
-                              HapticFeedback.lightImpact();
-                              Navigator.of(context).pop(); // Close sub-emotion dialog
-                              // Show content types for this sub-emotion
-                              await _showMagicContentTypes(
-                                emotionId,
-                                emotionName,
-                                subEmotionId,
-                                subEmotionName,
-                                email,
-                                password,
-                                magicResultsForSubEmotion,
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.purple.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.purple.withOpacity(0.2),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      subEmotionName,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF1C1C1E),
-                                      ),
+          barrierDismissible: true,
+          barrierLabel: 'Magic Sub Emotions',
+          barrierColor: Colors.black.withOpacity(0.3),
+          transitionDuration: const Duration(milliseconds: 220),
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return const SizedBox.shrink();
+          },
+          transitionBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+            return BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Opacity(
+                opacity: curved.value,
+                child: Transform.scale(
+                  scale: 0.94 + 0.06 * curved.value,
+                  child: Center(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Dialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: MediaQuery.of(context).size.height * 0.85,
+                            maxWidth: MediaQuery.of(context).size.width * 0.9,
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.white.withOpacity(0.25),
+                                      Colors.white.withOpacity(0.15),
+                                      Colors.white.withOpacity(0.10),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: kPrimary.withOpacity(0.1),
+                                      blurRadius: 60,
+                                      offset: const Offset(0, 30),
                                     ),
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 30,
+                                      offset: const Offset(0, 15),
+                                    ),
+                                  ],
+                                ),
+                                child: SingleChildScrollView(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        width: 40,
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: kPrimary.withOpacity(0.4),
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Text('✨', style: TextStyle(fontSize: 22)),
+                                          const SizedBox(width: 8),
+                                          Flexible(
+                                            child: Text(
+                                              emotionName,
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w700,
+                                                color: Color(0xFF1C1C1E),
+                                                letterSpacing: -0.2,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 2,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        subEmotionList.isEmpty ? 'No sub-emotions found for this emotion.' : 'Select one to continue',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Color(0xFF8E8E93),
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      if (subEmotionList.isNotEmpty)
+                                        ListView.builder(
+                                          shrinkWrap: true,
+                                          physics: const NeverScrollableScrollPhysics(),
+                                          itemCount: subEmotionList.length,
+                                          itemBuilder: (context, index) {
+                                            final subEmotion = subEmotionList[index];
+                                            final subEmotionId = subEmotion['id'] as int;
+                                            final subEmotionName = subEmotion['name'] as String;
+                                            return Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 6),
+                                              child: GestureDetector(
+                                                onTap: () async {
+                                                  HapticFeedback.lightImpact();
+                                                  Navigator.of(context).pop();
+                                                  await _showMagicContentTypes(
+                                                    emotionId,
+                                                    emotionName,
+                                                    subEmotionId,
+                                                    subEmotionName,
+                                                    email,
+                                                    password,
+                                                    magicResultsForSubEmotion,
+                                                  );
+                                                },
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.purple.shade50,
+                                                    borderRadius: BorderRadius.circular(14),
+                                                    border: Border.all(color: Colors.purple.withOpacity(0.2)),
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          subEmotionName,
+                                                          style: const TextStyle(
+                                                            fontSize: 15,
+                                                            fontWeight: FontWeight.w600,
+                                                            color: Color(0xFF1C1C1E),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.purple),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      const SizedBox(height: 16),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: TextButton(
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          child: const Text('Close'),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 16,
-                                    color: Colors.purple,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+                ),
               ),
-            ],
-          ),
+            );
+          },
         );
       }
     } catch (e) {
@@ -5445,7 +5648,20 @@ class _MagicContentDisplayPageState extends State<_MagicContentDisplayPage>
     List<Color> gradient,
     Color color,
   ) {
-    final audioUrl = audioItem['Content_url']?.toString() ?? '';
+    final contentUrl = audioItem['Content_url']?.toString() ?? '';
+    
+    // Construct full audio URL
+    String audioUrl = contentUrl;
+    if (contentUrl.isNotEmpty) {
+      // If URL is relative (doesn't start with http:// or https://), construct full URL
+      if (!contentUrl.startsWith('http://') && !contentUrl.startsWith('https://')) {
+        // Remove leading slash if present
+        final cleanPath = contentUrl.startsWith('/') ? contentUrl.substring(1) : contentUrl;
+        // Construct full URL: baseUrl/media/path
+        audioUrl = 'https://fusionfud.fusiontecsoftware.co.in/media/$cleanPath';
+      }
+    }
+    
     final description = audioItem['Description']?.toString() ?? '';
     final title = description.isNotEmpty ? description : 'Audio Content';
     final isPlaying = _isAudioPlaying && _currentAudioUrl == audioUrl;
@@ -5598,10 +5814,46 @@ class _MagicContentDisplayPageState extends State<_MagicContentDisplayPage>
     List<Color> gradient,
     Color color,
   ) {
-    final videoUrl = videoItem['Content_url']?.toString() ?? '';
+    final videoId = videoItem['id']?.toString() ?? '';
+    final contentUrl = videoItem['Content_url']?.toString() ?? '';
+    
+    // Construct full video URL
+    String videoUrl = contentUrl;
+    if (contentUrl.isNotEmpty) {
+      // If URL is relative (doesn't start with http:// or https://), construct full URL
+      if (!contentUrl.startsWith('http://') && !contentUrl.startsWith('https://')) {
+        // Remove leading slash if present
+        final cleanPath = contentUrl.startsWith('/') ? contentUrl.substring(1) : contentUrl;
+        
+        // Encode each path segment properly (handle spaces and special characters)
+        final pathSegments = cleanPath.split('/');
+        final encodedSegments = pathSegments.map((segment) {
+          // Encode spaces and special characters in each segment
+          return Uri.encodeComponent(segment);
+        }).toList();
+        final encodedPath = encodedSegments.join('/');
+        
+        // Construct full URL: baseUrl/media/path
+        videoUrl = 'https://fusionfud.fusiontecsoftware.co.in/media/$encodedPath';
+        
+        // Debug: Print URL construction
+        print('🔗 Video URL Construction:');
+        print('   Original Content_url: $contentUrl');
+        print('   Cleaned path: $cleanPath');
+        print('   Encoded path: $encodedPath');
+        print('   Final URL: $videoUrl');
+      } else {
+        print('🔗 Video URL (already absolute): $videoUrl');
+      }
+    } else {
+      print('⚠️  Video Content_url is empty!');
+    }
+    
     final description = videoItem['Description']?.toString() ?? '';
-    final title = description.isNotEmpty ? description : 'Video Content';
-    final isPlaying = _isVideoPlaying && _currentVideoUrl == videoUrl;
+    // Use description if available, otherwise use a default title with ID to ensure uniqueness
+    final title = description.isNotEmpty 
+        ? description 
+        : (videoId.isNotEmpty ? 'Video $videoId' : 'Video Content');
     
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
@@ -5671,7 +5923,17 @@ class _MagicContentDisplayPageState extends State<_MagicContentDisplayPage>
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => _toggleVideo(videoUrl),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FullScreenVideoPlayerPage(
+                            videoUrl: videoUrl,
+                            title: title,
+                          ),
+                        ),
+                      );
+                    },
                     child: Container(
                       width: 44,
                       height: 44,
@@ -5680,56 +5942,13 @@ class _MagicContentDisplayPageState extends State<_MagicContentDisplayPage>
                         color: color.withOpacity(0.2),
                       ),
                       child: Icon(
-                        isPlaying ? Icons.pause : Icons.play_arrow,
+                        Icons.play_arrow,
                         color: color,
                         size: 24,
                       ),
                     ),
                   ),
                 ],
-              ),
-              if (isPlaying) ...[
-                const SizedBox(height: 15),
-                LinearProgressIndicator(
-                  value: _videoProgress,
-                  backgroundColor: Colors.grey.withOpacity(0.3),
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
-                ),
-              ],
-              const SizedBox(height: 15),
-              // Video Player Widget - Tap to open full screen
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FullScreenVideoPlayerPage(
-                        videoUrl: videoUrl,
-                        title: title,
-                      ),
-                    ),
-                  );
-                },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      _VideoPlayerWidget(videoUrl: videoUrl),
-                      Positioned.fill(
-                        child: Container(
-                          color: Colors.black.withOpacity(0.3),
-                          child: const Center(
-                            child: Icon(
-                              Icons.play_circle_filled,
-                              color: Colors.white,
-                              size: 64,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ],
           ),
@@ -5739,7 +5958,20 @@ class _MagicContentDisplayPageState extends State<_MagicContentDisplayPage>
   }
 
   Widget _buildImageSection(Map<String, dynamic> imageItem) {
-    final imageUrl = imageItem['Content_url']?.toString() ?? '';
+    final contentUrl = imageItem['Content_url']?.toString() ?? '';
+    
+    // Construct full image URL
+    String imageUrl = contentUrl;
+    if (contentUrl.isNotEmpty) {
+      // If URL is relative (doesn't start with http:// or https://), construct full URL
+      if (!contentUrl.startsWith('http://') && !contentUrl.startsWith('https://')) {
+        // Remove leading slash if present
+        final cleanPath = contentUrl.startsWith('/') ? contentUrl.substring(1) : contentUrl;
+        // Construct full URL: baseUrl/media/path
+        imageUrl = 'https://fusionfud.fusiontecsoftware.co.in/media/$cleanPath';
+      }
+    }
+    
     final description = imageItem['Description']?.toString() ?? '';
     
     return ClipRRect(
@@ -6292,79 +6524,112 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
       // Handle URL encoding properly
       String url = widget.videoUrl.trim();
       
-      // Parse URL into components and rebuild with proper encoding
-      try {
-        // Try parsing as-is first
-        Uri? testUri = Uri.tryParse(url);
-        
-        // If URL has spaces, we need to encode the path properly
-        if (url.contains(' ') && !url.contains('%20')) {
-          // Split into scheme, host, and path
-          final parts = url.split('://');
-          if (parts.length == 2) {
-            final scheme = parts[0];
-            final rest = parts[1];
-            final slashIndex = rest.indexOf('/');
+      // If URL has spaces, we need to encode the path properly
+      if (url.contains(' ') && !url.contains('%20')) {
+        // Split into scheme, host, and path
+        final parts = url.split('://');
+        if (parts.length == 2) {
+          final scheme = parts[0];
+          final rest = parts[1];
+          final slashIndex = rest.indexOf('/');
+          
+          if (slashIndex > 0) {
+            final host = rest.substring(0, slashIndex);
+            final path = rest.substring(slashIndex);
             
-            if (slashIndex > 0) {
-              final host = rest.substring(0, slashIndex);
-              final path = rest.substring(slashIndex);
-              
-              // Parse the path and encode each segment
-              final pathSegments = path.split('/').where((s) => s.isNotEmpty).toList();
-              final encodedSegments = pathSegments.map((segment) {
-                // Encode spaces and special characters
-                return Uri.encodeComponent(segment);
-              }).toList();
-              
-              // Rebuild URL
-              url = '$scheme://$host/${encodedSegments.join('/')}';
-            }
+            // Parse the path and encode each segment
+            final pathSegments = path.split('/').where((s) => s.isNotEmpty).toList();
+            final encodedSegments = pathSegments.map((segment) {
+              // Encode spaces and special characters
+              return Uri.encodeComponent(segment);
+            }).toList();
+            
+            // Rebuild URL
+            url = '$scheme://$host/${encodedSegments.join('/')}';
           }
         }
-        
-        // Parse the final URL
-        final videoUri = Uri.parse(url);
-        
-        print('📋 URL Processing:');
-        print('   Original: ${widget.videoUrl}');
-        print('   Encoded:  $url');
-        
-        // Verify URL is accessible
-        print('🔍 Checking URL accessibility...');
+      }
+      
+      // Parse the initial URL
+      Uri initialUri = Uri.parse(url);
+      
+      print('📋 URL Processing (_VideoPlayerWidget):');
+      print('   Original widget.videoUrl: ${widget.videoUrl}');
+      print('   After encoding: $url');
+      print('   Initial URI: $initialUri');
+      
+      // Verify URL is accessible BEFORE trying to play
+      print('🔍 Checking URL accessibility BEFORE video player initialization...');
+      
+      // Try multiple URL variations in case encoding is the issue
+      List<Uri> urisToTry = [initialUri];
+      
+      // Try decoded version if URL is encoded
+      if (widget.videoUrl.contains('%20')) {
         try {
-          final response = await http.head(videoUri).timeout(
-            const Duration(seconds: 5),
+          final decodedUrl = Uri.decodeFull(widget.videoUrl);
+          final decodedUri = Uri.parse(decodedUrl);
+          urisToTry.insert(0, decodedUri);
+          print('   Also trying decoded URL: $decodedUri');
+        } catch (e) {
+          print('   Could not decode URL: $e');
+        }
+      }
+      
+      Uri? workingUri;
+      for (final testUri in urisToTry) {
+        try {
+          print('   Testing URL: $testUri');
+          final response = await http.head(testUri).timeout(
+            const Duration(seconds: 10),
             onTimeout: () {
               throw Exception('Request timeout');
             },
           );
           print('   Status Code: ${response.statusCode}');
-          print('   Content-Type: ${response.headers['content-type']}');
-          print('   Content-Length: ${response.headers['content-length']}');
-          if (response.statusCode != 200 && response.statusCode != 206) {
-            print('   ⚠️  Warning: Non-standard status code');
-          } else {
-            print('   ✅ URL is accessible');
-            // Check for Range support
+          
+          if (response.statusCode == 200 || response.statusCode == 206) {
+            print('   ✅✅✅ FOUND WORKING URL: $testUri');
+            workingUri = testUri;
+            print('   Content-Type: ${response.headers['content-type']}');
+            print('   Content-Length: ${response.headers['content-length']}');
             if (response.headers['accept-ranges'] != null) {
               print('   ✅ Server supports Range requests: ${response.headers['accept-ranges']}');
-            } else {
-              print('   ⚠️  Warning: Server may not support Range requests (this may cause video playback issues)');
             }
+            break; // Found working URL, stop trying
+          } else if (response.statusCode == 404) {
+            print('   ❌ This URL returns 404');
+            continue; // Try next URL variation
           }
         } catch (e) {
-          print('   ❌ URL accessibility check failed: $e');
-          // Continue anyway - let video player try
+          print('   ❌ Error checking URL $testUri: $e');
+          continue; // Try next URL variation
         }
-      } catch (e) {
-        print('URL encoding error: $e');
-        // Fallback to original URL
-        url = widget.videoUrl.trim();
       }
       
-      // Parse the final URL
-      final videoUri = Uri.parse(url);
+      if (workingUri == null) {
+        print('   ❌❌❌ ALL URL VARIATIONS FAILED - FILE NOT FOUND ON SERVER!');
+        print('   Tried URLs:');
+        for (final uri in urisToTry) {
+          print('     - $uri');
+        }
+        print('   Please check:');
+        print('   1. Is the file actually uploaded to the server?');
+        print('   2. Is the Content_url in database correct?');
+        print('   3. Is the file path correct in the server?');
+        print('   4. Does the filename match exactly (including spaces and special chars)?');
+        if (mounted) {
+          setState(() {
+            _hasError = true;
+            _errorMessage = 'Video file not found on server.\n\nTried URLs:\n${urisToTry.map((u) => u.toString()).join('\n')}\n\nPlease verify the file exists on the server.';
+          });
+        }
+        return; // Don't try to initialize video player if URL is invalid
+      }
+      
+      // Use the working URI we found
+      print('   ✅ Using working URI: $workingUri');
+      final videoUri = workingUri;
       
       print('Initializing video player with URI: $videoUri');
       

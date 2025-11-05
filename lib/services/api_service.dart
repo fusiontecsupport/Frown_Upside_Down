@@ -9,8 +9,17 @@ class ApiService {
   /// Returns a list of emotion names
   static Future<List<String>> fetchEmotions({required String email, required String password}) async {
     try {
-      final url = Uri.parse('$baseUrl/emotions/api/emotions/?Email=$email&Password=$password');
-      final response = await http.get(url);
+      // Add timestamp to prevent caching
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final url = Uri.parse('$baseUrl/emotions/api/emotions/?Email=$email&Password=$password&_t=$timestamp');
+      final response = await http.get(
+        url,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      );
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse is Map<String, dynamic> && jsonResponse['success'] == true) {
@@ -34,8 +43,17 @@ class ApiService {
   /// Returns a list of maps: { 'id': int, 'name': String, 'emoji': String }
   static Future<List<Map<String, dynamic>>> fetchEmotionItems({required String email, required String password}) async {
     try {
-      final url = Uri.parse('$baseUrl/emotions/api/emotions/?Email=$email&Password=$password');
-      final response = await http.get(url);
+      // Add timestamp to prevent caching
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final url = Uri.parse('$baseUrl/emotions/api/emotions/?Email=$email&Password=$password&_t=$timestamp');
+      final response = await http.get(
+        url,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      );
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse is Map<String, dynamic> && jsonResponse['success'] == true) {
@@ -70,8 +88,17 @@ class ApiService {
     required int emotionId,
   }) async {
     try {
-      final url = Uri.parse('$baseUrl/emotions/api/sub-emotions/?Email=$email&Password=$password&emotion_id=$emotionId');
-      final response = await http.get(url);
+      // Add timestamp to prevent caching
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final url = Uri.parse('$baseUrl/emotions/api/sub-emotions/?Email=$email&Password=$password&emotion_id=$emotionId&_t=$timestamp');
+      final response = await http.get(
+        url,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      );
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse is Map<String, dynamic> && jsonResponse['success'] == true) {
@@ -105,8 +132,17 @@ class ApiService {
     required int subEmotionId,
   }) async {
     try {
-      final url = Uri.parse('$baseUrl/emotions/api/contents/?Email=$email&Password=$password&sub_emotion_id=$subEmotionId');
-      final response = await http.get(url);
+      // Add timestamp to prevent caching
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final url = Uri.parse('$baseUrl/emotions/api/contents/?Email=$email&Password=$password&sub_emotion_id=$subEmotionId&_t=$timestamp');
+      final response = await http.get(
+        url,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      );
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse is Map<String, dynamic> && jsonResponse['success'] == true) {
@@ -136,6 +172,9 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
         },
         body: jsonEncode(user.toJson()),
       );
@@ -176,6 +215,9 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
         },
         body: jsonEncode({
           'Email': email,
@@ -226,7 +268,9 @@ class ApiService {
     String? contentType,
   }) async {
     try {
-      String urlString = '$baseUrl/emotions/api/magic/?Email=$email&Password=$password';
+      // Add timestamp to prevent caching
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      String urlString = '$baseUrl/emotions/api/magic/?Email=$email&Password=$password&_t=$timestamp';
       if (emotionId != null) {
         urlString += '&emotion_id=$emotionId';
       }
@@ -237,13 +281,24 @@ class ApiService {
         urlString += '&content_type=$contentType';
       }
       final url = Uri.parse(urlString);
-      final response = await http.get(url);
+      final response = await http.get(
+        url,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      );
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse is Map<String, dynamic>) {
           final List results = jsonResponse['results'] as List? ?? [];
+          print('📦 fetchMagicEmotions: Processing ${results.length} results');
           return results.map((e) {
             final map = e as Map<String, dynamic>;
+            final contentUrl = map['Content_url']?.toString() ?? '';
+            final contentType = map['Content_type']?.toString() ?? '';
+            print('   Content item: id=${map['id']}, type=$contentType, url=$contentUrl');
             return {
               'id': map['id'],
               'Emotion_id': map['Emotion_id'],
@@ -297,6 +352,9 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
         },
         body: jsonEncode({
           'Plan_Type': planType,
